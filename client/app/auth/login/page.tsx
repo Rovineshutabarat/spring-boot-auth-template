@@ -8,9 +8,46 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import { z } from "zod/v3";
+import { LoginRequest } from "@/types/payload/request/login.request";
+import { useMutation } from "@tanstack/react-query";
+import { AuthService } from "@/services/auth.service";
+import { toast } from "sonner";
+import { ErrorResponse } from "@/types/payload/response/common/error.response";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 
+type LoginRequest = z.infer<typeof LoginRequest>;
 const LoginPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
+  const router = useRouter();
+
+  const loginMutation = useMutation({
+    mutationKey: ["login_mutation"],
+    mutationFn: (data: LoginRequest) => AuthService.login(data),
+    onSuccess: (data) => {
+      toast.success(data?.message);
+      router.push("/");
+    },
+    onError: (error: any) => {
+      const parsed = error.parsedBody as ErrorResponse;
+      toast.error(parsed.message);
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(LoginRequest),
+    mode: "onSubmit",
+  });
+
+  const onSubmit: SubmitHandler<LoginRequest> = (data: LoginRequest) => {
+    loginMutation.mutate(data);
+  };
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center px-5 md:px-0">
@@ -24,10 +61,20 @@ const LoginPage = () => {
           </div>
 
           <div className="space-y-6">
-            <div className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter Your Email" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter Your Email"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-destructive text-sm">
+                    *{errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -44,6 +91,7 @@ const LoginPage = () => {
                     id="password"
                     type={isShowPassword ? "text" : "password"}
                     placeholder="Enter Your Password"
+                    {...register("password")}
                   />
                   <Button
                     type="button"
@@ -54,6 +102,11 @@ const LoginPage = () => {
                     {isShowPassword ? <Eye /> : <EyeOff />}
                   </Button>
                 </div>
+                {errors.password && (
+                  <p className="mt-1 text-destructive text-sm">
+                    *{errors.password.message}
+                  </p>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
@@ -61,11 +114,15 @@ const LoginPage = () => {
                   Remember me
                 </Label>
               </div>
-            </div>
 
-            <Button className="w-full" type="submit">
-              Sign in
-            </Button>
+              <Button
+                className="w-full cursor-pointer"
+                type="submit"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? "Please wait..." : "Sign in"}
+              </Button>
+            </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

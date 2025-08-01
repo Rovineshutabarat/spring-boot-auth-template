@@ -7,11 +7,48 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import { z } from "zod/v3";
+import { RegisterRequest } from "@/types/payload/request/register.request";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { AuthService } from "@/services/auth.service";
+import { toast } from "sonner";
+import { ErrorResponse } from "@/types/payload/response/common/error.response";
+import { useRouter } from "next/navigation";
 
+type RegisterRequest = z.infer<typeof RegisterRequest>;
 const RegisterPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] =
     useState<boolean>(false);
+  const router = useRouter();
+
+  const registerMutation = useMutation({
+    mutationKey: ["register_mutation"],
+    mutationFn: (data: RegisterRequest) => AuthService.register(data),
+    onSuccess: (data) => {
+      toast.success(data?.message);
+      router.push("/auth/login");
+    },
+    onError: (e: any) => {
+      const parsed = e.parsedBody as ErrorResponse;
+      toast.error(parsed.message);
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(RegisterRequest),
+    mode: "onSubmit",
+  });
+
+  const onSubmit: SubmitHandler<RegisterRequest> = (data: RegisterRequest) => {
+    registerMutation.mutate(data);
+  };
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center px-5 md:px-0">
@@ -25,18 +62,34 @@ const RegisterPage = () => {
           </div>
 
           <div className="space-y-6">
-            <div className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
                   placeholder="Enter Your Username"
+                  {...register("username")}
                 />
+                {errors.username && (
+                  <p className="mt-1 text-destructive text-sm">
+                    *{errors.username.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter Your Email" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter Your Email"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-destructive text-sm">
+                    *{errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -47,8 +100,10 @@ const RegisterPage = () => {
                     id="password"
                     type={isShowPassword ? "text" : "password"}
                     placeholder="Enter Your Password"
+                    {...register("password")}
                   />
                   <Button
+                    type="button"
                     variant="ghost"
                     className="absolute top-0 right-0"
                     onClick={() => setIsShowPassword(!isShowPassword)}
@@ -56,6 +111,11 @@ const RegisterPage = () => {
                     {isShowPassword ? <EyeOff /> : <Eye />}
                   </Button>
                 </div>
+                {errors.password && (
+                  <p className="mt-1 text-destructive text-sm">
+                    *{errors.password.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -67,6 +127,7 @@ const RegisterPage = () => {
                     id="confirm_password"
                     type={isShowConfirmPassword ? "text" : "password"}
                     placeholder="Confirm Your Password"
+                    {...register("confirmPassword")}
                   />
                   <Button
                     type="button"
@@ -79,12 +140,20 @@ const RegisterPage = () => {
                     {isShowConfirmPassword ? <EyeOff /> : <Eye />}
                   </Button>
                 </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-destructive text-sm">
+                    *{errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
-            </div>
-
-            <Button className="w-full" type="submit">
-              Sign up
-            </Button>
+              <Button
+                className="w-full cursor-pointer"
+                type="submit"
+                disabled={registerMutation.isPending}
+              >
+                {registerMutation.isPending ? "Please wait..." : "Sign up"}
+              </Button>
+            </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
