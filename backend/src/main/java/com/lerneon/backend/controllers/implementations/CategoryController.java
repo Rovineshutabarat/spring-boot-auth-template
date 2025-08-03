@@ -7,6 +7,7 @@ import com.lerneon.backend.models.payload.response.common.SuccessResponse;
 import com.lerneon.backend.services.implementations.CategoryService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/category")
 @AllArgsConstructor
+@Slf4j
 public class CategoryController implements BaseController<Category, Integer> {
     private CategoryService categoryService;
 

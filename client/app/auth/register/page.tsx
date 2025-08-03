@@ -11,31 +11,14 @@ import { z } from "zod/v3";
 import { RegisterRequest } from "@/types/payload/request/register.request";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { AuthService } from "@/services/auth.service";
-import { toast } from "sonner";
-import { ErrorResponse } from "@/types/payload/response/common/error.response";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 type RegisterRequest = z.infer<typeof RegisterRequest>;
 const RegisterPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] =
     useState<boolean>(false);
-  const router = useRouter();
-
-  const registerMutation = useMutation({
-    mutationKey: ["register_mutation"],
-    mutationFn: (data: RegisterRequest) => AuthService.register(data),
-    onSuccess: (data) => {
-      toast.success(data?.message);
-      router.push("/auth/login");
-    },
-    onError: (e: any) => {
-      const parsed = e.parsedBody as ErrorResponse;
-      toast.error(parsed.message);
-    },
-  });
+  const { signUp, isLoading } = useAuth();
 
   const {
     register,
@@ -47,7 +30,7 @@ const RegisterPage = () => {
   });
 
   const onSubmit: SubmitHandler<RegisterRequest> = (data: RegisterRequest) => {
-    registerMutation.mutate(data);
+    signUp(data);
   };
 
   return (
@@ -149,9 +132,9 @@ const RegisterPage = () => {
               <Button
                 className="w-full cursor-pointer"
                 type="submit"
-                disabled={registerMutation.isPending}
+                disabled={isLoading}
               >
-                {registerMutation.isPending ? "Please wait..." : "Sign up"}
+                {isLoading ? "Please wait..." : "Sign up"}
               </Button>
             </form>
 

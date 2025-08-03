@@ -4,8 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CategoryService } from "@/services/category.service";
 import { Category } from "@/types/entity/category";
 import { useAuth } from "@/hooks/use-auth";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 const Page = () => {
   const { data } = useQuery({
@@ -13,11 +11,9 @@ const Page = () => {
     queryFn: () => CategoryService.getAllCategories(),
   });
 
-  const { session, logout } = useAuth();
+  const { session } = useAuth();
   return (
     <div>
-      <Link href="/test">Test</Link>
-      {session && <Button onClick={logout}>Logout</Button>}
       {session ? (
         <>
           {data?.data.map((data: Category) => {

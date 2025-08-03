@@ -10,31 +10,14 @@ import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod/v3";
 import { LoginRequest } from "@/types/payload/request/login.request";
-import { useMutation } from "@tanstack/react-query";
-import { AuthService } from "@/services/auth.service";
-import { toast } from "sonner";
-import { ErrorResponse } from "@/types/payload/response/common/error.response";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 type LoginRequest = z.infer<typeof LoginRequest>;
 const LoginPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
-  const router = useRouter();
-
-  const loginMutation = useMutation({
-    mutationKey: ["login_mutation"],
-    mutationFn: (data: LoginRequest) => AuthService.login(data),
-    onSuccess: (data) => {
-      toast.success(data?.message);
-      router.push("/");
-    },
-    onError: (error: any) => {
-      const parsed = error.parsedBody as ErrorResponse;
-      toast.error(parsed.message);
-    },
-  });
+  const { signIn, isLoading } = useAuth();
 
   const {
     register,
@@ -46,7 +29,7 @@ const LoginPage = () => {
   });
 
   const onSubmit: SubmitHandler<LoginRequest> = (data: LoginRequest) => {
-    loginMutation.mutate(data);
+    signIn(data);
   };
 
   return (
@@ -118,9 +101,9 @@ const LoginPage = () => {
               <Button
                 className="w-full cursor-pointer"
                 type="submit"
-                disabled={loginMutation.isPending}
+                disabled={isLoading}
               >
-                {loginMutation.isPending ? "Please wait..." : "Sign in"}
+                {isLoading ? "Please wait..." : "Sign in"}
               </Button>
             </form>
 

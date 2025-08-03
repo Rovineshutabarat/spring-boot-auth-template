@@ -5,21 +5,32 @@ import { SuccessResponse } from "@/types/payload/response/common/success.respons
 import { AuthResponse } from "@/types/payload/response/auth.response";
 import { RegisterRequest } from "@/types/payload/request/register.request";
 import { User } from "@/types/entity/user";
-import { ErrorResponse } from "@/types/payload/response/common/error.response";
-import { HTTPError } from "ky";
 
 type LoginRequest = z.infer<typeof LoginRequest>;
 type RegisterRequest = z.infer<typeof RegisterRequest>;
-export namespace AuthService {
-  export async function login(data: LoginRequest) {
+
+export class AuthService {
+  static async login(
+    data: LoginRequest,
+  ): Promise<SuccessResponse<AuthResponse>> {
     return ApiClient.post("auth/login", {
       json: data,
     }).json<SuccessResponse<AuthResponse>>();
   }
 
-  export async function register(data: RegisterRequest) {
+  static async register(data: RegisterRequest): Promise<SuccessResponse<User>> {
     return ApiClient.post("auth/register", {
       json: data,
     }).json<SuccessResponse<User>>();
   }
+
+  static async logout(): Promise<SuccessResponse<void>> {
+    return ApiClient.post("auth/logout").json<SuccessResponse<void>>();
+  }
+
+  // static async refreshToken(): Promise<SuccessResponse<AuthResponse>> {
+  //   return ApiClient.post("auth/refresh-token").json<
+  //     SuccessResponse<AuthResponse>
+  //   >();
+  // }
 }

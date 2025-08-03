@@ -1,5 +1,6 @@
 package com.lerneon.backend.filter;
 
+import com.lerneon.backend.models.properties.JwtProperties;
 import com.lerneon.backend.services.JwtService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
@@ -27,6 +28,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final JwtProperties jwtProperties;
 
     @Override
     protected void doFilterInternal(
@@ -81,8 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String extractHeader(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            return StringUtils.hasText(token) ? token : null;
+            return header.substring(7);
         }
         return null;
     }

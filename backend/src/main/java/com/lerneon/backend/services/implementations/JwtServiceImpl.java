@@ -2,7 +2,7 @@ package com.lerneon.backend.services.implementations;
 
 import com.lerneon.backend.models.entity.Role;
 import com.lerneon.backend.models.entity.User;
-import com.lerneon.backend.models.properties.AuthProperties;
+import com.lerneon.backend.models.properties.JwtProperties;
 import com.lerneon.backend.services.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -19,10 +19,10 @@ import java.util.*;
 @Service
 @AllArgsConstructor
 public class JwtServiceImpl implements JwtService {
-    private final AuthProperties authProperties;
+    private final JwtProperties jwtProperties;
 
     public Key getPrivateKey() {
-        byte[] bytes = Decoders.BASE64.decode(authProperties.getJwtSecretKey());
+        byte[] bytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(bytes);
     }
 
@@ -32,9 +32,9 @@ public class JwtServiceImpl implements JwtService {
                 .setId(UUID.randomUUID().toString())
                 .setClaims(setClaims(user))
                 .setSubject(user.getId().toString())
-                .setIssuer(authProperties.getJwtIssuer())
+                .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() - authProperties.getJwtAccessTokenExpiration().toMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration().toMillis()))
                 .signWith(getPrivateKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -43,7 +43,7 @@ public class JwtServiceImpl implements JwtService {
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getPrivateKey())
-                .requireIssuer(authProperties.getJwtIssuer())
+                .requireIssuer(jwtProperties.getIssuer())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
