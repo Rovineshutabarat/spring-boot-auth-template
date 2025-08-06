@@ -3,19 +3,21 @@ package com.lerneon.backend.controllers.implementations;
 import com.lerneon.backend.controllers.AuthController;
 import com.lerneon.backend.handlers.ResponseHandler;
 import com.lerneon.backend.models.entity.User;
-import com.lerneon.backend.models.payload.request.LoginRequest;
-import com.lerneon.backend.models.payload.request.RegisterRequest;
+import com.lerneon.backend.models.payload.request.*;
 import com.lerneon.backend.models.payload.response.AuthResponse;
 import com.lerneon.backend.models.payload.response.common.SuccessResponse;
+import com.lerneon.backend.repositories.UserRepository;
 import com.lerneon.backend.services.AuthService;
+import com.lerneon.backend.services.OneTimePasswordService;
 import com.lerneon.backend.services.RefreshTokenService;
 import jakarta.annotation.Nonnull;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -23,9 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthControllerImpl implements AuthController {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
+    private final OneTimePasswordService oneTimePasswordService;
+    private final UserRepository userRepository;
 
+    @PostMapping("/login")
     @Override
-    public ResponseEntity<SuccessResponse<AuthResponse>> login(@Nonnull HttpServletResponse response, LoginRequest loginRequest) {
+    public ResponseEntity<SuccessResponse<AuthResponse>> login(
+            @Nonnull HttpServletResponse response,
+            @RequestBody @Valid LoginRequest loginRequest) {
         return ResponseHandler.buildSuccessResponse(
                 HttpStatus.OK,
                 "Authentication successful.",
@@ -33,8 +40,9 @@ public class AuthControllerImpl implements AuthController {
         );
     }
 
+    @PostMapping("/register")
     @Override
-    public ResponseEntity<SuccessResponse<User>> register(RegisterRequest registerRequest) {
+    public ResponseEntity<SuccessResponse<User>> register(@RequestBody @Valid RegisterRequest registerRequest) {
         return ResponseHandler.buildSuccessResponse(
                 HttpStatus.CREATED,
                 "User account has been created successfully.",
@@ -42,6 +50,7 @@ public class AuthControllerImpl implements AuthController {
         );
     }
 
+    @PostMapping("/refresh-token")
     @Override
     public ResponseEntity<SuccessResponse<AuthResponse>> refreshToken(@Nonnull HttpServletResponse response) {
         return ResponseHandler.buildSuccessResponse(
@@ -51,6 +60,7 @@ public class AuthControllerImpl implements AuthController {
         );
     }
 
+    @PostMapping("/logout")
     @Override
     public ResponseEntity<SuccessResponse<Void>> logout(@Nonnull HttpServletResponse response) {
         authService.logout(response);
@@ -58,6 +68,58 @@ public class AuthControllerImpl implements AuthController {
                 HttpStatus.OK,
                 "Successfully logged out.",
                 null
+        );
+    }
+
+    // FIXME: frontend should know the error message 04/08/2025
+    @PostMapping("/send-otp")
+    @Override
+    public ResponseEntity<SuccessResponse<Void>> sendOneTimePassword(@RequestBody @Valid EmailRequest emailRequest) throws MessagingException {
+        oneTimePasswordService.sendOneTimePassword(emailRequest);
+        return ResponseHandler.buildSuccessResponse(
+                HttpStatus.OK,
+                "OTP has been sent to the email address.",
+                null
+        );
+    }
+
+    @PostMapping("/verify-account")
+    @Override
+    public ResponseEntity<SuccessResponse<User>> verifyUserAccount(@RequestBody @Valid OneTimePasswordRequest oneTimePasswordRequest) {
+        return ResponseHandler.buildSuccessResponse(
+                HttpStatus.OK,
+                "Account has been successfully verified.",
+                authService.verifyUserAccount(oneTimePasswordRequest)
+        );
+    }
+
+    @PostMapping("/verify-password-reset")
+    @Override
+    public ResponseEntity<SuccessResponse<User>> verifyPasswordReset(@RequestBody @Valid OneTimePasswordRequest oneTimePasswordRequest) {
+        return ResponseHandler.buildSuccessResponse(
+                HttpStatus.OK,
+                "OTP is valid. You can now reset your password.",
+                authService.verifyPasswordReset(oneTimePasswordRequest)
+        );
+    }
+
+    @PostMapping("/change-password")
+    @Override
+    public ResponseEntity<SuccessResponse<User>> changePassword(@RequestBody @Valid UpdatePasswordRequest updatePasswordRequest) {
+        return ResponseHandler.buildSuccessResponse(
+                HttpStatus.OK,
+                "Password has been successfully updated.",
+                authService.changePassword(updatePasswordRequest)
+        );
+    }
+
+    @GetMapping("/user")
+    @Override
+    public ResponseEntity<SuccessResponse<User>> findUserbyEmail(@RequestParam(name = "email") String email) {
+        return ResponseHandler.buildSuccessResponse(
+                HttpStatus.OK,
+                "Success get user by email.",
+                authService.findUserByEmail(email)
         );
     }
 }

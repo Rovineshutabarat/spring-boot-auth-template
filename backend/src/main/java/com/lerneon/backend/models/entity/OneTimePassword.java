@@ -16,16 +16,19 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "one_time_password")
 @EqualsAndHashCode(callSuper = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RefreshToken extends BaseEntity {
+public class OneTimePassword extends BaseEntity {
     @Column(nullable = false, unique = true)
-    private String token;
+    private String code;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
+
+    @Column(nullable = false)
+    private Boolean available;
 
     @Column(nullable = false)
     private LocalDateTime expireAt;

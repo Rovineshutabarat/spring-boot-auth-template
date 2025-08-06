@@ -10,9 +10,9 @@ import com.lerneon.backend.services.JwtService;
 import com.lerneon.backend.services.RefreshTokenService;
 import com.lerneon.backend.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -30,21 +30,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
-    @Override
     @Transactional
+    @Override
     public RefreshToken generateRefreshToken(User user) {
         this.deletePreviousTokenByUser(user);
 
         return refreshTokenRepository.save(RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
                 .user(user)
-                .isRefreshed(false)
                 .expireAt(LocalDateTime.now().plus(refreshTokenProperties.getExpiration()))
                 .build());
     }
 
-    @Override
     @Transactional
+    @Override
     public AuthResponse refreshToken(HttpServletResponse response) {
         Optional<String> refreshTokenCookie = CookieUtil.getCookie(refreshTokenProperties.getCookieName()); // make this constant variable
 
@@ -55,10 +54,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenCookie.get()).orElseThrow(
                 () -> new AuthException("Refresh token was not found.")
         );
-
-        if (refreshToken.getIsRefreshed()) {
-            throw new AuthException("Refresh token is already used.");
-        }
 
         if (refreshToken.getExpireAt().isBefore(LocalDateTime.now())) {
             throw new AuthException("Refresh token is already expired.");
@@ -81,11 +76,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .build();
     }
 
-    @Override
     @Transactional
+    @Override
     public void deletePreviousTokenByUser(User user) {
-        refreshTokenRepository.findAllByUser(user).ifPresent(refreshTokens -> {
-            refreshTokenRepository.deleteAllByUser(user);
-        });
+        refreshTokenRepository.deleteAllByUser(user);
     }
 }

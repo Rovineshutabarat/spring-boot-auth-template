@@ -36,6 +36,12 @@ public class User extends BaseEntity implements UserDetails {
     @JsonIgnore
     private String password;
 
+    @Column(nullable = false)
+    private Boolean isVerified;
+
+    @Column(nullable = false)
+    private Boolean canChangePassword;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false),
@@ -69,6 +75,6 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isEnabled() {
-        return true;
+        return isVerified;
     }
 }

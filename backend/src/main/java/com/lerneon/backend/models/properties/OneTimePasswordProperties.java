@@ -9,6 +9,6 @@ import java.time.Duration;
 @Data
 @Component
 @ConfigurationProperties(prefix = "auth.otp")
-public class OtpProperties {
+public class OneTimePasswordProperties {
     private Duration expiration;
 }

@@ -36,7 +36,7 @@ export const ApiClient = ky.extend({
     ],
     afterResponse: [
       async (request, options, response) => {
-        if (response.status == 401) {
+        if (response.status === 402) {
           try {
             const response = await ky
               .post("http://localhost:4000/api/auth/refresh-token", {

@@ -134,7 +134,17 @@ const RegisterPage = () => {
                 type="submit"
                 disabled={isLoading}
               >
-                {isLoading ? "Please wait..." : "Sign up"}
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_0.4s_linear_infinite] dark:text-slate-700"
+                      role="status"
+                    ></div>
+                    <p>Please Wait..</p>
+                  </div>
+                ) : (
+                  "Sign up"
+                )}
               </Button>
             </form>
 

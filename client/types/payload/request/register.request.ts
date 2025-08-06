@@ -37,7 +37,7 @@ export const RegisterRequest = z
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords does not match",
+    message: "Password does not match",
     path: ["confirmPassword"],
   })
   .transform(({ confirmPassword, ...data }) => data);
