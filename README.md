@@ -3,7 +3,6 @@
 
 A modern, production-ready authentication system built with **Spring Boot** and **Next.js**, featuring JWT authentication, OAuth2 integration, email verification, and role-based authorization.
 
-![Authentication Flow](client/public/img.png)
  
 ## 📋 Table of Contents
 
@@ -16,6 +15,9 @@ A modern, production-ready authentication system built with **Spring Boot** and 
 - [License](#-license)
 
 ## 🎯 Overview
+
+![Authentication Flow](client/public/img.png)
+
 
 This authentication template provides a complete solution for user authentication and authorization in modern web applications. It includes secure login/registration, email verification, password reset functionality, OAuth2 social login, and role-based access control.
 
@@ -277,3 +279,4 @@ client/
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+ 
