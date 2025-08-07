@@ -3,10 +3,10 @@ package com.lerneon.backend.utils;
 import com.lerneon.backend.models.entity.Category;
 import com.lerneon.backend.models.entity.Role;
 import com.lerneon.backend.models.entity.User;
+import com.lerneon.backend.models.enums.AccountProvider;
 import com.lerneon.backend.models.exceptions.ResourceNotFoundException;
 import com.lerneon.backend.repositories.RoleRepository;
 import com.lerneon.backend.repositories.UserRepository;
-import com.lerneon.backend.services.AuthService;
 import com.lerneon.backend.services.implementations.CategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -28,7 +28,7 @@ public class AppInitializer implements CommandLineRunner {
     public void run(String... args) {
         initializeRoles();
         initializeCategories();
-//        initializeUsers();
+        initializeUsers();
     }
 
     void initializeRoles() {
@@ -53,6 +53,7 @@ public class AppInitializer implements CommandLineRunner {
                 .password(passwordEncoder.encode("rovines"))
                 .isVerified(false)
                 .roles(roles)
+                .provider(AccountProvider.LOCAL)
                 .canChangePassword(false)
                 .build());
     }

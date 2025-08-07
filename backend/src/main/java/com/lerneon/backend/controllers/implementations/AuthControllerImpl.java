@@ -6,10 +6,10 @@ import com.lerneon.backend.models.entity.User;
 import com.lerneon.backend.models.payload.request.*;
 import com.lerneon.backend.models.payload.response.AuthResponse;
 import com.lerneon.backend.models.payload.response.common.SuccessResponse;
-import com.lerneon.backend.repositories.UserRepository;
 import com.lerneon.backend.services.AuthService;
 import com.lerneon.backend.services.OneTimePasswordService;
 import com.lerneon.backend.services.RefreshTokenService;
+import com.lerneon.backend.services.UserService;
 import jakarta.annotation.Nonnull;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,7 +26,7 @@ public class AuthControllerImpl implements AuthController {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
     private final OneTimePasswordService oneTimePasswordService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @PostMapping("/login")
     @Override
@@ -71,7 +71,6 @@ public class AuthControllerImpl implements AuthController {
         );
     }
 
-    // FIXME: frontend should know the error message 04/08/2025
     @PostMapping("/send-otp")
     @Override
     public ResponseEntity<SuccessResponse<Void>> sendOneTimePassword(@RequestBody @Valid EmailRequest emailRequest) throws MessagingException {
@@ -109,7 +108,7 @@ public class AuthControllerImpl implements AuthController {
         return ResponseHandler.buildSuccessResponse(
                 HttpStatus.OK,
                 "Password has been successfully updated.",
-                authService.changePassword(updatePasswordRequest)
+                userService.changePassword(updatePasswordRequest)
         );
     }
 
@@ -119,7 +118,7 @@ public class AuthControllerImpl implements AuthController {
         return ResponseHandler.buildSuccessResponse(
                 HttpStatus.OK,
                 "Success get user by email.",
-                authService.findUserByEmail(email)
+                userService.findUserByEmail(email)
         );
     }
 }

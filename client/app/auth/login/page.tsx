@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -13,12 +13,27 @@ import { LoginRequest } from "@/types/payload/request/login.request";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type LoginRequest = z.infer<typeof LoginRequest>;
 const LoginPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const { signIn, isLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
+  useEffect(() => {
+    const error = searchParams.get("error");
+
+    if (error) {
+      toast.error(error);
+
+      const params = new URLSearchParams(Array.from(searchParams.entries()));
+      params.delete("error");
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [searchParams, router]);
   const {
     register,
     handleSubmit,
@@ -29,6 +44,7 @@ const LoginPage = () => {
   });
 
   const onSubmit: SubmitHandler<LoginRequest> = (data: LoginRequest) => {
+    sessionStorage.setItem("verification_email", data.email);
     signIn(data);
   };
 
@@ -128,19 +144,21 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <Button
-              variant="ghost"
-              className="w-full bg-primary/10 shadow-sm shadow-primary/50 dark:shadow-none cursor-pointer"
-              type="button"
-            >
-              <Image
-                src="https://img.icons8.com/fluency/50/google-logo.png"
-                alt="google icon"
-                height={20}
-                width={20}
-              />
-              <span>Google</span>
-            </Button>
+            <Link href="http://localhost:4000/api/oauth2/authorization/google">
+              <Button
+                variant="ghost"
+                className="w-full mb-6 bg-primary/10 shadow-sm shadow-primary/50 dark:shadow-none cursor-pointer"
+                type="button"
+              >
+                <Image
+                  src="https://img.icons8.com/fluency/50/google-logo.png"
+                  alt="google icon"
+                  height={20}
+                  width={20}
+                />
+                <span>Google</span>
+              </Button>
+            </Link>
 
             <div className="text-center text-sm">
               Don't have an account?{" "}

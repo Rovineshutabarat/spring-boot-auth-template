@@ -15,9 +15,4 @@ public interface AuthService {
     User verifyUserAccount(OneTimePasswordRequest oneTimePasswordRequest);
 
     User verifyPasswordReset(OneTimePasswordRequest oneTimePasswordRequest);
-
-    // FIXME: Move this to user service | 04/08/2025
-    User changePassword(UpdatePasswordRequest updatePasswordRequest);
-
-    User findUserByEmail(String email);
 }

@@ -1,5 +1,6 @@
 package com.lerneon.backend.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,8 +25,10 @@ public class BaseEntity {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
+    @JsonIgnore
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @JsonIgnore
     private LocalDateTime updatedAt;
 }

@@ -36,12 +36,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @Nonnull HttpServletResponse response,
             @Nonnull FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication != null && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
             log.info("Request already authenticated.");
             filterChain.doFilter(request, response);
             return;
         }
+
         String header = extractHeader(request);
 
         if (!StringUtils.hasText(header)) {
@@ -58,12 +60,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String email = jwtService.extractEmail(header);
-            if (!StringUtils.hasText(email)) {
-                log.debug("Email is missing from JWT token.");
-                filterChain.doFilter(request, response);
-                return;
-            }
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,
@@ -72,7 +70,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
-            log.info("Successfully authenticated.");
+
+            log.info("Request successfully authenticated.");
         } catch (Exception exception) {
             log.error("Failed to authenticate request,{}", exception.getMessage());
             SecurityContextHolder.clearContext();
@@ -82,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String extractHeader(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+        if (StringUtils.hasText(header) && header.startsWith(jwtProperties.getPrefix().concat(" "))) {
             return header.substring(7);
         }
         return null;

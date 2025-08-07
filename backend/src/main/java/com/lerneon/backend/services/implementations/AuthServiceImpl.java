@@ -4,20 +4,16 @@ import com.lerneon.backend.models.entity.OneTimePassword;
 import com.lerneon.backend.models.entity.RefreshToken;
 import com.lerneon.backend.models.entity.Role;
 import com.lerneon.backend.models.entity.User;
+import com.lerneon.backend.models.enums.AccountProvider;
 import com.lerneon.backend.models.exceptions.AuthException;
 import com.lerneon.backend.models.exceptions.ResourceNotFoundException;
 import com.lerneon.backend.models.payload.request.LoginRequest;
 import com.lerneon.backend.models.payload.request.OneTimePasswordRequest;
 import com.lerneon.backend.models.payload.request.RegisterRequest;
-import com.lerneon.backend.models.payload.request.UpdatePasswordRequest;
 import com.lerneon.backend.models.payload.response.AuthResponse;
 import com.lerneon.backend.models.properties.RefreshTokenProperties;
 import com.lerneon.backend.repositories.RoleRepository;
-import com.lerneon.backend.repositories.UserRepository;
-import com.lerneon.backend.services.AuthService;
-import com.lerneon.backend.services.JwtService;
-import com.lerneon.backend.services.OneTimePasswordService;
-import com.lerneon.backend.services.RefreshTokenService;
+import com.lerneon.backend.services.*;
 import com.lerneon.backend.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -38,28 +34,33 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
-    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final RoleRepository roleRepository;
-    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
     private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenProperties refreshTokenProperties;
     private final OneTimePasswordService oneTimePasswordService;
+    private final AuthenticationManager authenticationManager;
+    private final RefreshTokenProperties refreshTokenProperties;
 
     @Override
     public AuthResponse login(HttpServletResponse response, LoginRequest loginRequest) {
         try {
             CookieUtil.removeCookie(response, refreshTokenProperties.getCookieName());
 
+            User user = userService.findUserByEmail(loginRequest.getEmail());
+
+            if (user.getProvider().equals(AccountProvider.GOOGLE)) {
+                throw new AuthException("You’ve previously signed up using Google. Please continue with Google to log in.");
+            }
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            User user = (User) authentication.getPrincipal();
             String accessToken = jwtService.generateAccessToken(user);
-
             RefreshToken refreshToken = refreshTokenService.generateRefreshToken(user);
 
             CookieUtil.setCookie(
@@ -72,32 +73,32 @@ public class AuthServiceImpl implements AuthService {
                     .accessToken(accessToken)
                     .user(user)
                     .build();
+
         } catch (BadCredentialsException exception) {
-            log.error(exception.getMessage());
             throw new AuthException("Invalid email or password.");
         } catch (Exception exception) {
-            log.error(exception.getMessage());
             throw new AuthException(exception.getMessage());
         }
     }
 
     @Override
     public User register(RegisterRequest registerRequest) {
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new AuthException("Email has already been used.");
+        if (userService.existByEmail(registerRequest.getEmail())) {
+            throw new AuthException("Email already taken.");
         }
 
         List<Role> defaultRoles = new ArrayList<>();
         defaultRoles.add(roleRepository.findByName("ROLE_USER").orElseThrow(
-                () -> new ResourceNotFoundException("Role was not found.")
+                () -> new ResourceNotFoundException("Default role was not found.")
         ));
 
-        return userRepository.save(User.builder()
+        return userService.save(User.builder()
                 .username(registerRequest.getUsername())
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .isVerified(false)
                 .canChangePassword(false)
+                .provider(AccountProvider.LOCAL)
                 .roles(defaultRoles)
                 .build());
     }
@@ -106,9 +107,8 @@ public class AuthServiceImpl implements AuthService {
     public void logout(HttpServletResponse response) {
         Optional<String> refreshTokenCookie = CookieUtil.getCookie(refreshTokenProperties.getCookieName());
 
-        refreshTokenCookie.flatMap(refreshTokenService::findByToken).ifPresent(refreshToken -> {
-            refreshTokenService.deletePreviousTokenByUser(refreshToken.getUser());
-        });
+        refreshTokenCookie.flatMap(refreshTokenService::findByToken).ifPresent(refreshToken ->
+                refreshTokenService.deletePreviousTokenByUser(refreshToken.getUser()));
 
         CookieUtil.removeCookie(response, refreshTokenProperties.getCookieName());
         SecurityContextHolder.clearContext();
@@ -117,48 +117,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public User verifyUserAccount(OneTimePasswordRequest oneTimePasswordRequest) {
         OneTimePassword oneTimePassword = oneTimePasswordService.verifyOneTimePassword(oneTimePasswordRequest);
-        User user = userRepository.findByEmail(oneTimePassword.getUser().getEmail()).orElseThrow(
-                () -> new ResourceNotFoundException("User was not found.")
-        );
-        if (user.getIsVerified()) {
-            throw new AuthException("User is already verified.");
-        }
+        User user = oneTimePassword.getUser();
 
         user.setIsVerified(true);
-        return userRepository.save(user);
+        return userService.save(user);
     }
 
     @Override
     public User verifyPasswordReset(OneTimePasswordRequest oneTimePasswordRequest) {
         OneTimePassword oneTimePassword = oneTimePasswordService.verifyOneTimePassword(oneTimePasswordRequest);
-        User user = userRepository.findByEmail(oneTimePassword.getUser().getEmail()).orElseThrow(
-                () -> new ResourceNotFoundException("User was not found.")
-        );
+        User user = oneTimePassword.getUser();
 
         user.setCanChangePassword(true);
-        return userRepository.save(user);
-    }
-
-    // FIXME: Move this to user service | 04/08/2025
-    @Override
-    public User changePassword(UpdatePasswordRequest updatePasswordRequest) {
-        User user = userRepository.findByEmail(updatePasswordRequest.getEmail()).orElseThrow(
-                () -> new ResourceNotFoundException("User was not found.")
-        );
-
-        if (!user.getCanChangePassword()) {
-            throw new AuthException("You are not authorized to change the password.");
-        }
-
-        user.setPassword(passwordEncoder.encode(updatePasswordRequest.getPassword()));
-        user.setCanChangePassword(false);
-        return userRepository.save(user);
-    }
-
-    @Override
-    public User findUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> new ResourceNotFoundException("Email was not found.")
-        );
+        return userService.save(user);
     }
 }

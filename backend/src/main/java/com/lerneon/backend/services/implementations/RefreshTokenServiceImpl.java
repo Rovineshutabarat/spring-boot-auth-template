@@ -45,10 +45,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Transactional
     @Override
     public AuthResponse refreshToken(HttpServletResponse response) {
-        Optional<String> refreshTokenCookie = CookieUtil.getCookie(refreshTokenProperties.getCookieName()); // make this constant variable
+        Optional<String> refreshTokenCookie = CookieUtil.getCookie(refreshTokenProperties.getCookieName());
 
         if (refreshTokenCookie.isEmpty()) {
-            throw new AuthException("Refresh token cookie was not found.");
+            throw new AuthException("Request does not contain Refresh token.");
         }
 
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenCookie.get()).orElseThrow(

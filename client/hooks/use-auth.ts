@@ -54,10 +54,11 @@ export function useAuth(): UseAuth {
       setSession(null);
       const parsed = error.parsedBody as ErrorResponse;
       if (parsed.message === "User is disabled") {
-        // FIXME: it should set email in session storage and send verification code | 06/08/2025
         toast.warning("Please verify your account first.");
+        router.push("/auth/verify-account");
       } else {
-        toast.error(parsed?.message || "Something went wrong");
+        toast.error(parsed?.message || "Something went wrong.");
+        sessionStorage.clear();
       }
     },
   });
@@ -70,18 +71,18 @@ export function useAuth(): UseAuth {
       router.push("/auth/verify-account");
     },
     onError: (error: any) => {
-      sessionStorage.clear();
       const parsed = error.parsedBody as ErrorResponse;
-      toast.error(parsed?.message || "Something went wrong");
+      toast.error(parsed?.message || "Something went wrong.");
+      sessionStorage.clear();
     },
   });
 
   const logoutMutation = useMutation({
     mutationKey: ["logout_mutation"],
     mutationFn: () => AuthService.logout(),
-    onSuccess: (response) => {
-      toast.success(response.message);
+    onSuccess: () => {
       setSession(null);
+      router.push("/auth/login");
     },
     onError: () => toast.error("Failed to logout."),
   });
@@ -98,14 +99,13 @@ export function useAuth(): UseAuth {
     mutationKey: ["verify_account_mutation"],
     mutationFn: (data: OneTimePasswordRequest) =>
       AuthService.verifyAccount(data),
-    onSuccess: (response) => {
-      sessionStorage.clear();
-      toast.success(response.message);
+    onSuccess: () => {
       router.push("/auth/login");
+      sessionStorage.clear();
     },
     onError: () => {
-      sessionStorage.clear();
       toast.error("Invalid or expired code. Please try again.");
+      sessionStorage.clear();
     },
   });
 
@@ -118,8 +118,8 @@ export function useAuth(): UseAuth {
       router.push("/auth/change-password");
     },
     onError: () => {
-      sessionStorage.clear();
       toast.error("Invalid or expired code. Please try again.");
+      sessionStorage.clear();
     },
   });
 
@@ -132,7 +132,7 @@ export function useAuth(): UseAuth {
       router.push("/auth/login");
     },
     onError: () => {
-      toast.error("Failed to change password");
+      toast.error("Failed to change your password.");
     },
   });
 

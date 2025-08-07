@@ -8,9 +8,9 @@ import com.lerneon.backend.models.payload.request.EmailRequest;
 import com.lerneon.backend.models.payload.request.OneTimePasswordRequest;
 import com.lerneon.backend.models.properties.OneTimePasswordProperties;
 import com.lerneon.backend.repositories.OneTimePasswordRepository;
-import com.lerneon.backend.repositories.UserRepository;
 import com.lerneon.backend.services.MailService;
 import com.lerneon.backend.services.OneTimePasswordService;
+import com.lerneon.backend.services.UserService;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
     private final MailService mailService;
     private final OneTimePasswordProperties oneTimePasswordProperties;
     private final TemplateEngine templateEngine;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Transactional
     @Override
@@ -49,10 +49,9 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
     @Transactional
     @Override
     public void sendOneTimePassword(EmailRequest emailRequest) throws MessagingException {
-        User user = userRepository.findByEmail(emailRequest.getEmail()).orElseThrow(
-                () -> new ResourceNotFoundException("User was not found.")
-        );
+        User user = userService.findUserByEmail(emailRequest.getEmail());
         OneTimePassword oneTimePassword = generateOneTimePassword(user);
+
         mailService.sendMail(emailRequest.getEmail(), "Verify Your Identity", loadOneTimePasswordTemplate(oneTimePassword));
     }
 
@@ -63,7 +62,7 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
         );
 
         if (!oneTimePassword.getAvailable()) {
-            throw new AuthException("One Time Password is already used.");
+            throw new AuthException("One-Time Password is no longer valid.");
         }
 
         if (oneTimePassword.getExpireAt().isBefore(LocalDateTime.now())) {

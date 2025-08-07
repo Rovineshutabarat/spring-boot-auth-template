@@ -148,31 +148,6 @@ const RegisterPage = () => {
               </Button>
             </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <Button
-              variant="ghost"
-              className="w-full bg-primary/10 shadow-sm shadow-primary/50 dark:shadow-none"
-              type="button"
-            >
-              <Image
-                src="https://img.icons8.com/fluency/50/google-logo.png"
-                alt="google icon"
-                height={20}
-                width={20}
-              />
-              <span>Google</span>
-            </Button>
-
             <div className="text-center text-sm">
               Already have an account?{" "}
               <Link

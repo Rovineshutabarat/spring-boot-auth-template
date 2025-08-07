@@ -3,6 +3,7 @@ package com.lerneon.backend.models.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.lerneon.backend.models.enums.AccountProvider;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,6 +42,8 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(nullable = false)
     private Boolean canChangePassword;
+
+    private AccountProvider provider;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",

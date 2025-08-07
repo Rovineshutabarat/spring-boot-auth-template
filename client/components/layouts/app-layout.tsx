@@ -22,13 +22,13 @@ const queryClient = new QueryClient({
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
       <Toaster
         visibleToasts={4}
         expand={true}
         // theme={theme as "dark" | "light"}
         richColors={true}
       />
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </>
   );
 };
