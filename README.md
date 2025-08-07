@@ -7,13 +7,13 @@ A modern, production-ready authentication system built with **Spring Boot** and 
  
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [API Documentation](#api-documentation)
-- [License](#license)
+- [Overview](#-overview)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Installation](#-installation)
+- [API Documentation](#-api-documentation)
+- [License](#-license)
 
 ## 🎯 Overview
 
