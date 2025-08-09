@@ -1,0 +1,44 @@
+server:
+  port: 4000
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: server
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/your_db_name
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        show_sql: false
+        format_sql: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+auth:
+  jwt:
+    prefix: Bearer
+    secret-key: your_secret_key
+    issuer: com.lerneon.backend
+    expiration: 5m
+  refresh-token:
+    cookie-name: __refresh_token
+    expiration: 7d
+  otp:
+    expiration: 5m
