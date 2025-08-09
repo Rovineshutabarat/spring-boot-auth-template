@@ -51,7 +51,7 @@ public class AppInitializer implements CommandLineRunner {
                 .email("rovineshutabarat23@gmail.com")
                 .username("rovines")
                 .password(passwordEncoder.encode("rovines"))
-                .isVerified(false)
+                .isVerified(true)
                 .roles(roles)
                 .provider(AccountProvider.LOCAL)
                 .canChangePassword(false)
