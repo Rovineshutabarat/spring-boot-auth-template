@@ -22,7 +22,7 @@ A modern, production-ready authentication system built with **Spring Boot** and 
 This authentication template provides a complete solution for user authentication and authorization in modern web applications. It includes secure login/registration, email verification, password reset functionality, OAuth2 social login, and role-based access control.
 
 ### Key Highlights
-
+ 
 - **🔒 Secure Authentication**: JWT tokens with refresh token rotation
 - **📧 Email Verification**: OTP-based account verification
 - **🔄 OAuth2 Integration**: Google OAuth2 login support
@@ -43,13 +43,6 @@ This authentication template provides a complete solution for user authenticatio
 - ✅ Account verification workflow
 - ✅ Secure logout with token invalidation
 
-### User Management
-- ✅ User profile management
-- ✅ Email-based user lookup
-- ✅ Account status tracking
-- ✅ Password change functionality
-- ✅ Account provider tracking (Local/Google)
-
 ### Security Features
 - ✅ JWT token authentication
 - ✅ Refresh token cookies
@@ -58,16 +51,6 @@ This authentication template provides a complete solution for user authenticatio
 - ✅ SQL injection prevention
 - ✅ XSS protection
 - ✅ Secure password hashing
-
-### Frontend Features
-- ✅ Modern React components
-- ✅ Form validation with Zod
-- ✅ OTP input components
-- ✅ Responsive design
-- ✅ Dark/light theme support
-- ✅ Toast notifications
-- ✅ Loading states
-- ✅ Error handling
 
 ## 🛠️ Tech Stack
 
@@ -89,9 +72,8 @@ This authentication template provides a complete solution for user authenticatio
 - **Styling**: Tailwind CSS 4
 - **State Management**: TanStack React Query
 - **Forms**: React Hook Form + Zod
-- **UI Components**: Radix UI + Custom Components
+- **UI Components**: Shadcn
 - **HTTP Client**: Ky
-- **Notifications**: Sonner
 - **Package Manager**: pnpm
 
 ### Development Tools
@@ -253,7 +235,7 @@ client/
 | `GET` | `/api/oauth2/authorization/google` | Initiate Google OAuth2 |
 | `GET` | `/api/login/oauth2/code/google` | Google OAuth2 callback |
 
-### Request/Response Format
+### Response Format
 
 - Success Response
 ```json
