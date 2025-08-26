@@ -30,3 +30,5 @@ export const LoginRequest = z.object({
       message: "Password is too long. Please enter no more than 100 characters",
     }),
 });
+
+export type LoginRequest = z.infer<typeof LoginRequest>;

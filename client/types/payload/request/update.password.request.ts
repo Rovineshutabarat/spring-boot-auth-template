@@ -27,3 +27,5 @@ export const UpdatePasswordRequest = z
       }),
   })
   .transform(({ oldPassword, ...data }) => data);
+
+export type UpdatePasswordRequest = z.infer<typeof UpdatePasswordRequest>;

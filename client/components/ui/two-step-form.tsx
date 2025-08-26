@@ -12,14 +12,12 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { z } from "zod/v3";
 import { useRouter } from "next/navigation";
 
 type TwoStepFormProps = {
   mode: "verify-account" | "forgot-password";
 };
 
-type OneTimePasswordRequest = z.infer<typeof OneTimePasswordRequest>;
 const TwoStepForm = ({ mode }: TwoStepFormProps) => {
   const { verifyAccount, sendOneTimePassword, verifyPasswordReset, isLoading } =
     useAuth();

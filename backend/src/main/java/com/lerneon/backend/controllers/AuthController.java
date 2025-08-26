@@ -6,7 +6,6 @@ import com.lerneon.backend.models.payload.response.AuthResponse;
 import com.lerneon.backend.models.payload.response.common.SuccessResponse;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.Email;
 import org.springframework.http.ResponseEntity;
 
 public interface AuthController {

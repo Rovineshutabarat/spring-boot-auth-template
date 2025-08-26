@@ -15,3 +15,5 @@ export const EmailRequest = z.object({
       message: "Email is too long. Please enter no more than 100 characters",
     }),
 });
+
+export type EmailRequest = z.infer<typeof EmailRequest>;

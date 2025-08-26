@@ -3,7 +3,6 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { z } from "zod/v3";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,14 +11,15 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-type UpdatePasswordRequest = z.infer<typeof UpdatePasswordRequest>;
 const Page = () => {
   const [isShowOldPassword, setIsShowOldPassword] =
     React.useState<boolean>(false);
   const [isShowNewPassword, setIsShowNewPassword] =
     React.useState<boolean>(false);
-  const { isLoading, changePassword } = useAuth();
+
   const router = useRouter();
+
+  const { isLoading, changePassword } = useAuth();
 
   const {
     register,

@@ -4,6 +4,7 @@ import com.lerneon.backend.models.entity.User;
 import com.lerneon.backend.models.exceptions.AuthException;
 import com.lerneon.backend.models.exceptions.ResourceNotFoundException;
 import com.lerneon.backend.models.payload.request.UpdatePasswordRequest;
+import com.lerneon.backend.models.payload.request.UpdateProfileRequest;
 import com.lerneon.backend.repositories.UserRepository;
 import com.lerneon.backend.services.UserService;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User save(User user) {
+    public User saveUser(User user) {
         return userRepository.save(user);
     }
 
@@ -49,6 +50,18 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(updatePasswordRequest.getPassword()));
         user.setCanChangePassword(false);
-        return save(user);
+        return saveUser(user);
+    }
+
+    @Override
+    public User updateUser(Integer id, UpdateProfileRequest updateProfileRequest) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("User was not found.")
+        );
+
+        user.setUsername(updateProfileRequest.getUsername());
+        user.setEmail(updateProfileRequest.getEmail());
+
+        return saveUser(user);
     }
 }

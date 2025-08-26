@@ -1,23 +1,22 @@
 "use client";
+
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
-import { z } from "zod/v3";
 import { RegisterRequest } from "@/types/payload/request/register.request";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
 
-type RegisterRequest = z.infer<typeof RegisterRequest>;
 const RegisterPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] =
     useState<boolean>(false);
+
   const { signUp, isLoading } = useAuth();
 
   const {
