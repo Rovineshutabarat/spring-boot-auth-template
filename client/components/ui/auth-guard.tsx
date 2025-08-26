@@ -1,4 +1,5 @@
 "use client";
+
 import React, { Fragment } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import Unauthorized from "next/dist/client/components/builtin/unauthorized";
@@ -13,7 +14,7 @@ const AuthGuard = ({ children, roles }: AuthGuardProps) => {
 
   if (!isRefreshLoading && !hasPermission(roles)) return <Unauthorized />;
 
-  if (isRefreshLoading) return <p>Loading...</p>;
+  if (isRefreshLoading) return null;
 
   return <Fragment>{children}</Fragment>;
 };

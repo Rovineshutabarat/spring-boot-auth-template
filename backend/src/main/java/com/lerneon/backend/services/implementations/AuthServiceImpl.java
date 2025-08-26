@@ -92,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
                 () -> new ResourceNotFoundException("Default role was not found.")
         ));
 
-        return userService.save(User.builder()
+        return userService.saveUser(User.builder()
                 .username(registerRequest.getUsername())
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
@@ -120,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
         User user = oneTimePassword.getUser();
 
         user.setIsVerified(true);
-        return userService.save(user);
+        return userService.saveUser(user);
     }
 
     @Override
@@ -129,6 +129,6 @@ public class AuthServiceImpl implements AuthService {
         User user = oneTimePassword.getUser();
 
         user.setCanChangePassword(true);
-        return userService.save(user);
+        return userService.saveUser(user);
     }
 }

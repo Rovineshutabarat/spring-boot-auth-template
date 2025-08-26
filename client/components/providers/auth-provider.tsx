@@ -34,6 +34,7 @@ export default function AuthProvider({
 
   React.useEffect(() => {
     if (pathname.startsWith("/auth")) {
+      setIsRefreshLoading(false);
       return;
     }
     (async () => {
@@ -46,7 +47,7 @@ export default function AuthProvider({
         setIsRefreshLoading(false);
       }
     })();
-  }, [setSession]);
+  }, [pathname, setSession]);
 
   const hasPermission = React.useCallback(
     (permissions: string[]): boolean => {
@@ -65,8 +66,6 @@ export default function AuthProvider({
     () => Boolean(session?.accessToken && session?.user),
     [session],
   );
-
-  if (isRefreshLoading) return null;
 
   return (
     <AuthProviderContext.Provider

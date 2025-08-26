@@ -98,10 +98,12 @@ export default function AuthTemplateLanding() {
                     <DropdownMenuContent className="w-40" align="end">
                       <DropdownMenuLabel>My Account</DropdownMenuLabel>
                       <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                          <UserIcon />
-                          Profile
-                        </DropdownMenuItem>
+                        <Link href={"/profile"}>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <UserIcon />
+                            Profile
+                          </DropdownMenuItem>
+                        </Link>
                         <DropdownMenuItem
                           className="text-destructive cursor-pointer"
                           onClick={logout}

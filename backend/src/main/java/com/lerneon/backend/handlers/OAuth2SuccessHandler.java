@@ -58,7 +58,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        User user = existingUser.orElseGet(() -> userService.save(User.builder()
+        User user = existingUser.orElseGet(() -> userService.saveUser(User.builder()
                 .username(attributes.get("name").toString())
                 .email(email)
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
