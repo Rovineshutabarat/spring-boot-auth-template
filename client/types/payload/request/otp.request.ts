@@ -15,3 +15,5 @@ export const OneTimePasswordRequest = z.object({
         "Verification code is too long. Please enter no more than 6 characters",
     }),
 });
+
+export type OneTimePasswordRequest = z.infer<typeof OneTimePasswordRequest>;

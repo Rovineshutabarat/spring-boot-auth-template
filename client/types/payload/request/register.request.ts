@@ -41,3 +41,5 @@ export const RegisterRequest = z
     path: ["confirmPassword"],
   })
   .transform(({ confirmPassword, ...data }) => data);
+
+export type RegisterRequest = z.infer<typeof RegisterRequest>;

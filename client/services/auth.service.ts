@@ -1,6 +1,5 @@
-import { z } from "zod/v3";
 import { LoginRequest } from "@/types/payload/request/login.request";
-import { ApiClient } from "@/services/api.client";
+import { ApiClient } from "@/services/config/api.client";
 import { SuccessResponse } from "@/types/payload/response/common/success.response";
 import { AuthResponse } from "@/types/payload/response/auth.response";
 import { RegisterRequest } from "@/types/payload/request/register.request";
@@ -8,12 +7,6 @@ import { User } from "@/types/entity/user";
 import { EmailRequest } from "@/types/payload/request/email.request";
 import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
 import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
-
-type LoginRequest = z.infer<typeof LoginRequest>;
-type RegisterRequest = z.infer<typeof RegisterRequest>;
-type EmailRequest = z.infer<typeof EmailRequest>;
-type OneTimePasswordRequest = z.infer<typeof OneTimePasswordRequest>;
-type UpdatePasswordRequest = z.infer<typeof UpdatePasswordRequest>;
 
 export class AuthService {
   static async login(

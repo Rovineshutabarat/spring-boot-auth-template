@@ -3,7 +3,6 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { z } from "zod/v3";
 import { EmailRequest } from "@/types/payload/request/email.request";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +11,6 @@ import { AuthService } from "@/services/auth.service";
 import { toast } from "sonner";
 import { ErrorResponse } from "@/types/payload/response/common/error.response";
 
-type EmailRequest = z.infer<typeof EmailRequest>;
 const Page = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);

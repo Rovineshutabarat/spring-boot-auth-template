@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
-import { z } from "zod/v3";
 import { LoginRequest } from "@/types/payload/request/login.request";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,12 +16,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type LoginRequest = z.infer<typeof LoginRequest>;
 const LoginPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
-  const { signIn, isLoading } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const { signIn, isLoading } = useAuth();
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -34,6 +34,7 @@ const LoginPage = () => {
       router.replace(`?${params.toString()}`, { scroll: false });
     }
   }, [searchParams, router]);
+
   const {
     register,
     handleSubmit,

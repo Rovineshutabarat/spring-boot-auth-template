@@ -2,6 +2,7 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import AuthProvider from "@/components/providers/auth-provider";
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -28,7 +29,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         // theme={theme as "dark" | "light"}
         richColors={true}
       />
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>{children}</AuthProvider>
+      </QueryClientProvider>
     </>
   );
 };
