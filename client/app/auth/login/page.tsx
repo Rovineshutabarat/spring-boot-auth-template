@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
-import { Eye, EyeOff } from "lucide-react";
-import { LoginRequest } from "@/types/payload/request/login.request";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from "sonner";
+import { LoginRequest } from "@/types/payload/request/login.request";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
@@ -67,6 +67,7 @@ const LoginPage = () => {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Enter Your Email"
                   {...register("email")}
                 />
@@ -89,6 +90,7 @@ const LoginPage = () => {
                 <div className="relative">
                   <Input
                     id="password"
+                    autoComplete="current-password"
                     type={isShowPassword ? "text" : "password"}
                     placeholder="Enter Your Password"
                     {...register("password")}
@@ -177,13 +179,10 @@ const LoginPage = () => {
       <div className="hidden bg-primary/10 lg:block md:w-1/2">
         <div className="flex h-full items-center justify-center">
           <div className="relative h-full w-full max-w-3xl">
-            <Image
-              src="https://edma-theme.vercel.app/images/signup-img.jpg"
+            <img
+              src="https://www.gbscorporate.com/uploads/pexels-olia-danilevich-4974914.jpg"
               alt="Login illustration"
-              width={600}
-              height={600}
               className="h-screen w-full object-cover"
-              priority
             />
           </div>
         </div>

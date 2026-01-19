@@ -1,9 +1,7 @@
-# 🔐 Full-Stack Authentication Template
-
+# Full-Stack Authentication Template
 
 A modern, production-ready authentication system built with **Spring Boot** and **Next.js**, featuring JWT authentication, OAuth2 integration, email verification, and role-based authorization.
 
- 
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
@@ -18,11 +16,10 @@ A modern, production-ready authentication system built with **Spring Boot** and 
 
 ![Authentication Flow](client/public/img.png)
 
-
 This authentication template provides a complete solution for user authentication and authorization in modern web applications. It includes secure login/registration, email verification, password reset functionality, OAuth2 social login, and role-based access control.
 
 ### Key Highlights
- 
+
 - **🔒 Secure Authentication**: JWT tokens with refresh token rotation
 - **📧 Email Verification**: OTP-based account verification
 - **🔄 OAuth2 Integration**: Google OAuth2 login support
@@ -34,6 +31,7 @@ This authentication template provides a complete solution for user authenticatio
 ## ✨ Features
 
 ### Authentication & Authorization
+
 - ✅ User registration with email verification
 - ✅ Secure login with JWT tokens
 - ✅ Refresh token rotation
@@ -44,6 +42,7 @@ This authentication template provides a complete solution for user authenticatio
 - ✅ Secure logout with token invalidation
 
 ### Security Features
+
 - ✅ JWT token authentication
 - ✅ Refresh token cookies
 - ✅ CORS configuration
@@ -55,6 +54,7 @@ This authentication template provides a complete solution for user authenticatio
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Framework**: Spring Boot 3.5.4
 - **Language**: Java 17
 - **Database**: MySQL 8.0
@@ -67,6 +67,7 @@ This authentication template provides a complete solution for user authenticatio
 - **Utilities**: Lombok, Jackson
 
 ### Frontend
+
 - **Framework**: Next.js 15.4.3
 - **Language**: TypeScript 5
 - **Styling**: Tailwind CSS 4
@@ -77,6 +78,7 @@ This authentication template provides a complete solution for user authenticatio
 - **Package Manager**: pnpm
 
 ### Development Tools
+
 - **IDE**: IntelliJ IDEA
 - **Version Control**: Git
 - **API Testing**: Postman/Insomnia
@@ -85,6 +87,7 @@ This authentication template provides a complete solution for user authenticatio
 ## 🏗️ Architecture
 
 ### Backend Architecture
+
 ```
 backend/
 ├── src/main/java/com/lerneon/backend/
@@ -99,6 +102,7 @@ backend/
 ```
 
 ### Frontend Architecture
+
 ```
 client/
 ├── app/                     # Next.js App Router
@@ -110,9 +114,11 @@ client/
 ├── types/                  # TypeScript type definitions
 └── lib/                    # Utility functions
 ```
+
 ## 🚀 Installation
 
 ### Prerequisites
+
 - Java 17 or higher
 - Node.js 18 or higher
 - MySQL 8.0 or higher
@@ -121,18 +127,21 @@ client/
 ### Backend Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Rovineshutabarat/spring-boot-auth-template.git
    cd auth-template/backend
    ```
 
 2. **Configure Database**
+
    ```bash
    # Create MySQL database
    CREATE DATABASE auth_template;
    ```
 
 3. **Configure Environment**
+
    ```bash
    # Copy example configuration
    cp src/main/resources/application.yml.example src/main/resources/application.yml
@@ -140,6 +149,7 @@ client/
 
 4. **Update Configuration**
    - Edit `src/main/resources/application.yml`:
+
    ```yaml
    spring:
      datasource:
@@ -155,11 +165,12 @@ client/
    ```
 
 5. **Build and Run**
+
    ```bash
    # Using Maven wrapper
    ./mvnw clean install
    ./mvnw spring-boot:run
-   
+
    # Or using Maven
    mvn clean install
    mvn spring-boot:run
@@ -168,11 +179,13 @@ client/
 ### Frontend Setup
 
 1. **Navigate to client directory**
+
    ```bash
    cd ../client
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    # or
@@ -189,6 +202,7 @@ client/
 ### Production Build
 
 1. **Build Backend**
+
    ```bash
    cd backend
    ./mvnw clean package
@@ -206,38 +220,39 @@ client/
 
 ### Authentication Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/register` | User registration |
-| `POST` | `/api/auth/login` | User login |
-| `POST` | `/api/auth/logout` | User logout |
-| `POST` | `/api/auth/refresh-token` | Refresh JWT token |
-| `POST` | `/api/auth/send-otp` | Send email OTP |
-| `POST` | `/api/auth/verify-account` | Verify account with OTP |
+| Method | Endpoint                          | Description               |
+| ------ | --------------------------------- | ------------------------- |
+| `POST` | `/api/auth/register`              | User registration         |
+| `POST` | `/api/auth/login`                 | User login                |
+| `POST` | `/api/auth/logout`                | User logout               |
+| `POST` | `/api/auth/refresh-token`         | Refresh JWT token         |
+| `POST` | `/api/auth/send-otp`              | Send email OTP            |
+| `POST` | `/api/auth/verify-account`        | Verify account with OTP   |
 | `POST` | `/api/auth/verify-password-reset` | Verify password reset OTP |
-| `POST` | `/api/auth/change-password` | Change user password |
-| `GET` | `/api/auth/user` | Get user by email |
+| `POST` | `/api/auth/change-password`       | Change user password      |
+| `GET`  | `/api/auth/user`                  | Get user by email         |
 
 ### Category Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/category` | Get all categories |
-| `GET` | `/api/category/{id}` | Get category by ID |
-| `POST` | `/api/category` | Create new category |
-| `PUT` | `/api/category/{id}` | Update category |
-| `DELETE` | `/api/category/{id}` | Delete category |
+| Method   | Endpoint             | Description         |
+| -------- | -------------------- | ------------------- |
+| `GET`    | `/api/category`      | Get all categories  |
+| `GET`    | `/api/category/{id}` | Get category by ID  |
+| `POST`   | `/api/category`      | Create new category |
+| `PUT`    | `/api/category/{id}` | Update category     |
+| `DELETE` | `/api/category/{id}` | Delete category     |
 
 ### OAuth2 Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/oauth2/authorization/google` | Initiate Google OAuth2 |
-| `GET` | `/api/login/oauth2/code/google` | Google OAuth2 callback |
+| Method | Endpoint                           | Description            |
+| ------ | ---------------------------------- | ---------------------- |
+| `GET`  | `/api/oauth2/authorization/google` | Initiate Google OAuth2 |
+| `GET`  | `/api/login/oauth2/code/google`    | Google OAuth2 callback |
 
 ### Response Format
 
 - Success Response
+
 ```json
 {
   "success": "SUCCESS",
@@ -248,6 +263,7 @@ client/
 ```
 
 - Error Response
+
 ```json
 {
   "success": "ERROR",
@@ -261,4 +277,3 @@ client/
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
- 

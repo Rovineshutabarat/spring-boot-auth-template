@@ -18,4 +18,7 @@ public class EmailRequest {
     @Size(min = 5, message = "Email is too short. Please enter at least 5 characters")
     @Size(max = 100, message = "Email is too long. Please enter no more than 100 characters")
     private String email;
+
+    // Make Enum validation
+    private String verificationType;
 }

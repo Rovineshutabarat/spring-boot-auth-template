@@ -1,21 +1,22 @@
-import { LoginRequest } from "@/types/payload/request/login.request";
-import { RegisterRequest } from "@/types/payload/request/register.request";
-import { useMutation } from "@tanstack/react-query";
-import { AuthService } from "@/services/auth.service";
-import { toast } from "sonner";
-import { ErrorResponse } from "@/types/payload/response/common/error.response";
-import { useRouter } from "next/navigation";
-import { EmailRequest } from "@/types/payload/request/email.request";
-import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
-import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
-import React from "react";
 import { AuthProviderContext } from "@/components/providers/auth-provider";
+import { AuthService } from "@/services/auth.service";
+import { VerificationType } from "@/types/enums/verification.type";
+import { EmailRequest } from "@/types/payload/request/email.request";
+import { LoginRequest } from "@/types/payload/request/login.request";
+import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
+import { RegisterRequest } from "@/types/payload/request/register.request";
+import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
+import { ErrorResponse } from "@/types/payload/response/common/error.response";
 import { UseAuth } from "@/types/use.auth";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { toast } from "sonner";
 
 const ROUTES = {
   HOMEPAGE: "/",
   LOGIN: "/auth/login",
-  VERIFY_ACCOUNT: "/auth/verify-account",
+  VERIFY: "/auth/verify",
   CHANGE_PASSWORD: "/auth/change-password",
 } as const;
 
@@ -26,8 +27,6 @@ const ERROR_MESSAGE = {
   PASSWORD_CHANGE_FAILED: "Failed to change your password.",
   VERIFY_ACCOUNT_WARNING: "Please verify your account first.",
 } as const;
-
-const SESSION_STORAGE = { VERIFICATION_EMAIL: "verification_email" };
 
 export function useAuth(): UseAuth {
   const router = useRouter();
@@ -58,10 +57,14 @@ export function useAuth(): UseAuth {
       const parsed = error.parsedBody as ErrorResponse;
       if (parsed.message === "User is disabled") {
         toast.warning(ERROR_MESSAGE.VERIFY_ACCOUNT_WARNING);
-        router.push(ROUTES.VERIFY_ACCOUNT);
+        const email = sessionStorage.getItem("verification_email");
+        router.push(
+          ROUTES.VERIFY.concat(
+            `?email=${email}&type=${VerificationType.Values.ACCOUNT_VERIFICATION}`,
+          ),
+        );
       } else {
         toast.error(parsed?.message || ERROR_MESSAGE.GENERIC);
-        sessionStorage.clear();
       }
     },
   });
@@ -70,16 +73,16 @@ export function useAuth(): UseAuth {
     mutationKey: ["register_mutation"],
     mutationFn: (data: RegisterRequest) => AuthService.register(data),
     onSuccess: (response) => {
-      sessionStorage.setItem(
-        SESSION_STORAGE.VERIFICATION_EMAIL,
-        response.data.email,
+      localStorage.setItem("lastOtpRequest", Date.now().toString());
+      router.push(
+        ROUTES.VERIFY.concat(
+          `?email=${response.data.email}&type=${VerificationType.Values.ACCOUNT_VERIFICATION}`,
+        ),
       );
-      router.push(ROUTES.VERIFY_ACCOUNT);
     },
     onError: (error: any) => {
       const parsed = error.parsedBody as ErrorResponse;
       toast.error(parsed?.message || ERROR_MESSAGE.GENERIC);
-      sessionStorage.clear();
     },
   });
 
@@ -96,40 +99,30 @@ export function useAuth(): UseAuth {
   const sendOneTimePasswordMutation = useMutation({
     mutationKey: ["send_otp_mutation"],
     mutationFn: (data: EmailRequest) => AuthService.sendOneTimePassword(data),
-    onSuccess: () => {
-      sessionStorage.clear();
+    onError: (error: any) => {
+      const parsed = error.parsedBody as ErrorResponse;
+      toast.error(parsed?.message || ERROR_MESSAGE.GENERIC);
     },
   });
 
-  const verifyAccountMutation = useMutation({
-    mutationKey: ["verify_account_mutation"],
-    mutationFn: (data: OneTimePasswordRequest) =>
-      AuthService.verifyAccount(data),
+  const verifyOneTimePasswordMutation = useMutation({
+    mutationKey: ["verify_otp_mutation"],
+    mutationFn: ({
+      data,
+      email,
+      VType,
+    }: {
+      data: OneTimePasswordRequest;
+      email: string;
+      VType: VerificationType;
+    }) => {
+      return AuthService.verifyOneTimePassword(data, email, VType);
+    },
     onSuccess: () => {
+      toast.success("Verification successful!");
       router.push(ROUTES.LOGIN);
-      sessionStorage.clear();
     },
-    onError: () => {
-      toast.error(ERROR_MESSAGE.INVALID_CODE);
-      sessionStorage.clear();
-    },
-  });
-
-  const verifyPasswordResetMutation = useMutation({
-    mutationKey: ["verify_password_reset_mutation"],
-    mutationFn: (data: OneTimePasswordRequest) =>
-      AuthService.verifyPasswordReset(data),
-    onSuccess: (response) => {
-      sessionStorage.setItem(
-        SESSION_STORAGE.VERIFICATION_EMAIL,
-        response.data.email,
-      );
-      router.push(ROUTES.CHANGE_PASSWORD);
-    },
-    onError: () => {
-      toast.error(ERROR_MESSAGE.INVALID_CODE);
-      sessionStorage.clear();
-    },
+    onError: () => toast.error(ERROR_MESSAGE.INVALID_CODE),
   });
 
   const changePasswordMutation = useMutation({
@@ -137,7 +130,6 @@ export function useAuth(): UseAuth {
     mutationFn: (data: UpdatePasswordRequest) =>
       AuthService.changePassword(data),
     onSuccess: () => {
-      sessionStorage.clear();
       router.push(ROUTES.LOGIN);
     },
     onError: () => {
@@ -149,8 +141,6 @@ export function useAuth(): UseAuth {
     loginMutation.isPending,
     registerMutation.isPending,
     sendOneTimePasswordMutation.isPending,
-    verifyAccountMutation.isPending,
-    verifyPasswordResetMutation.isPending,
     changePasswordMutation.isPending,
   ].some(Boolean);
 
@@ -165,10 +155,11 @@ export function useAuth(): UseAuth {
     logout: () => logoutMutation.mutate(),
     sendOneTimePassword: (data: EmailRequest) =>
       sendOneTimePasswordMutation.mutate(data),
-    verifyAccount: (data: OneTimePasswordRequest) =>
-      verifyAccountMutation.mutate(data),
-    verifyPasswordReset: (data: OneTimePasswordRequest) =>
-      verifyPasswordResetMutation.mutate(data),
+    verifyOneTimePassword: (
+      data: OneTimePasswordRequest,
+      email: string,
+      VType: VerificationType,
+    ) => verifyOneTimePasswordMutation.mutate({ data, email, VType }),
     changePassword: (data: UpdatePasswordRequest) =>
       changePasswordMutation.mutate(data),
   };

@@ -1,12 +1,13 @@
-import { LoginRequest } from "@/types/payload/request/login.request";
 import { ApiClient } from "@/services/config/api.client";
-import { SuccessResponse } from "@/types/payload/response/common/success.response";
-import { AuthResponse } from "@/types/payload/response/auth.response";
-import { RegisterRequest } from "@/types/payload/request/register.request";
 import { User } from "@/types/entity/user";
+import { VerificationType } from "@/types/enums/verification.type";
 import { EmailRequest } from "@/types/payload/request/email.request";
+import { LoginRequest } from "@/types/payload/request/login.request";
 import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
+import { RegisterRequest } from "@/types/payload/request/register.request";
 import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
+import { AuthResponse } from "@/types/payload/response/auth.response";
+import { SuccessResponse } from "@/types/payload/response/common/success.response";
 
 export class AuthService {
   static async login(
@@ -27,11 +28,6 @@ export class AuthService {
     return ApiClient.post("auth/logout").json<SuccessResponse<void>>();
   }
 
-  // static async refreshToken(): Promise<SuccessResponse<AuthResponse>> {
-  //   return ApiClient.post("auth/refresh-token").json<
-  //     SuccessResponse<AuthResponse>
-  //   >();
-  // }
   static async sendOneTimePassword(
     data: EmailRequest,
   ): Promise<SuccessResponse<void>> {
@@ -40,18 +36,12 @@ export class AuthService {
     }).json<SuccessResponse<void>>();
   }
 
-  static async verifyAccount(
+  static async verifyOneTimePassword(
     data: OneTimePasswordRequest,
+    email: string,
+    VType: VerificationType,
   ): Promise<SuccessResponse<User>> {
-    return ApiClient.post("auth/verify-account", {
-      json: data,
-    }).json<SuccessResponse<User>>();
-  }
-
-  static async verifyPasswordReset(
-    data: OneTimePasswordRequest,
-  ): Promise<SuccessResponse<User>> {
-    return ApiClient.post("auth/verify-password-reset", {
+    return ApiClient.post(`auth/verify-otp?email=${email}&type=${VType}`, {
       json: data,
     }).json<SuccessResponse<User>>();
   }
