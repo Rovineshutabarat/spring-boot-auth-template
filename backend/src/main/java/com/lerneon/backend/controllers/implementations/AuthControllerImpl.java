@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lerneon.backend.controllers.AuthController;
 import com.lerneon.backend.handlers.ResponseHandler;
+import com.lerneon.backend.models.entity.OneTimePassword;
 import com.lerneon.backend.models.entity.User;
 import com.lerneon.backend.models.enums.VerificationType;
 import com.lerneon.backend.models.payload.request.EmailRequest;
@@ -111,9 +112,10 @@ public class AuthControllerImpl implements AuthController {
 
         @PostMapping("/verify-otp")
         @Override
-        public ResponseEntity<SuccessResponse<User>> verifyOneTimePassword(
+        public ResponseEntity<SuccessResponse<OneTimePassword>> verifyOneTimePassword(
                         @RequestBody @Valid OneTimePasswordRequest oneTimePasswordRequest,
-                        @RequestParam String email, @RequestParam(name = "type") VerificationType verificationType) {
+                        @RequestParam String email,
+                        @RequestParam(name = "type") VerificationType verificationType) {
                 return ResponseHandler.buildSuccessResponse(
                                 HttpStatus.OK,
                                 "Account has been successfully verified.",

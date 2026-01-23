@@ -2,6 +2,7 @@ package com.lerneon.backend.controllers;
 
 import org.springframework.http.ResponseEntity;
 
+import com.lerneon.backend.models.entity.OneTimePassword;
 import com.lerneon.backend.models.entity.User;
 import com.lerneon.backend.models.enums.VerificationType;
 import com.lerneon.backend.models.payload.request.EmailRequest;
@@ -29,7 +30,8 @@ public interface AuthController {
 
         ResponseEntity<SuccessResponse<Void>> sendOneTimePassword(EmailRequest emailRequest) throws MessagingException;
 
-        ResponseEntity<SuccessResponse<User>> verifyOneTimePassword(OneTimePasswordRequest oneTimePasswordRequest,
+        ResponseEntity<SuccessResponse<OneTimePassword>> verifyOneTimePassword(
+                        OneTimePasswordRequest oneTimePasswordRequest,
                         String email, VerificationType verificationType);
 
         ResponseEntity<SuccessResponse<User>> changePassword(UpdatePasswordRequest updatePasswordRequest);

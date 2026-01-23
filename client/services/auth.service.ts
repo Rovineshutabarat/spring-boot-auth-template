@@ -1,4 +1,5 @@
 import { ApiClient } from "@/services/config/api.client";
+import { OneTimePassword } from "@/types/entity/one.time.password";
 import { User } from "@/types/entity/user";
 import { VerificationType } from "@/types/enums/verification.type";
 import { EmailRequest } from "@/types/payload/request/email.request";
@@ -8,6 +9,7 @@ import { RegisterRequest } from "@/types/payload/request/register.request";
 import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
 import { AuthResponse } from "@/types/payload/response/auth.response";
 import { SuccessResponse } from "@/types/payload/response/common/success.response";
+import { toast } from "sonner";
 
 export class AuthService {
   static async login(
@@ -31,6 +33,7 @@ export class AuthService {
   static async sendOneTimePassword(
     data: EmailRequest,
   ): Promise<SuccessResponse<void>> {
+    toast.success("A verification code has been sent to your email");
     return ApiClient.post("auth/send-otp", {
       json: data,
     }).json<SuccessResponse<void>>();
@@ -40,10 +43,10 @@ export class AuthService {
     data: OneTimePasswordRequest,
     email: string,
     VType: VerificationType,
-  ): Promise<SuccessResponse<User>> {
+  ): Promise<SuccessResponse<OneTimePassword>> {
     return ApiClient.post(`auth/verify-otp?email=${email}&type=${VType}`, {
       json: data,
-    }).json<SuccessResponse<User>>();
+    }).json<SuccessResponse<OneTimePassword>>();
   }
 
   static async findUserByEmail(email: string): Promise<SuccessResponse<User>> {

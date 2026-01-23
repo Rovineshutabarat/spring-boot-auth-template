@@ -1,5 +1,6 @@
 import { AuthProviderContext } from "@/components/providers/auth-provider";
 import { AuthService } from "@/services/auth.service";
+import { OneTimePassword } from "@/types/entity/one.time.password";
 import { VerificationType } from "@/types/enums/verification.type";
 import { EmailRequest } from "@/types/payload/request/email.request";
 import { LoginRequest } from "@/types/payload/request/login.request";
@@ -7,6 +8,7 @@ import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
 import { RegisterRequest } from "@/types/payload/request/register.request";
 import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
 import { ErrorResponse } from "@/types/payload/response/common/error.response";
+import { SuccessResponse } from "@/types/payload/response/common/success.response";
 import { UseAuth } from "@/types/use.auth";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -37,18 +39,14 @@ export function useAuth(): UseAuth {
     throw new Error("useAuth must be used inside AuthProvider");
   }
 
-  const {
-    session,
-    setSession,
-    isAuthenticated,
-    hasPermission,
-    isRefreshLoading,
-  } = ctx;
+  const { session, setSession, isAuthenticated, hasRoles, isRefreshLoading } =
+    ctx;
 
   const loginMutation = useMutation({
     mutationKey: ["login_mutation"],
     mutationFn: (data: LoginRequest) => AuthService.login(data),
     onSuccess: (response) => {
+      sessionStorage.clear();
       setSession(response.data);
       router.push(ROUTES.HOMEPAGE);
     },
@@ -118,9 +116,20 @@ export function useAuth(): UseAuth {
     }) => {
       return AuthService.verifyOneTimePassword(data, email, VType);
     },
-    onSuccess: () => {
-      toast.success("Verification successful!");
-      router.push(ROUTES.LOGIN);
+    onSuccess: (response: SuccessResponse<OneTimePassword>) => {
+      if (
+        response.data.verification_type ===
+        VerificationType.Values.ACCOUNT_VERIFICATION
+      ) {
+        toast.success("Account verified successfully!");
+        router.push(ROUTES.LOGIN);
+      } else if (
+        response.data.verification_type ===
+        VerificationType.Values.PASSWORD_RESET
+      ) {
+        sessionStorage.setItem("verification_email", response.data.user.email);
+        router.push("/auth/change-password");
+      }
     },
     onError: () => toast.error(ERROR_MESSAGE.INVALID_CODE),
   });
@@ -131,6 +140,7 @@ export function useAuth(): UseAuth {
       AuthService.changePassword(data),
     onSuccess: () => {
       router.push(ROUTES.LOGIN);
+      sessionStorage.clear();
     },
     onError: () => {
       toast.error(ERROR_MESSAGE.PASSWORD_CHANGE_FAILED);
@@ -147,7 +157,7 @@ export function useAuth(): UseAuth {
   return {
     session: session,
     isAuthenticated: isAuthenticated,
-    hasPermission: hasPermission,
+    hasRoles: hasRoles,
     isLoading: isLoading,
     isRefreshLoading: isRefreshLoading,
     signIn: (data: LoginRequest) => loginMutation.mutate(data),

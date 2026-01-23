@@ -77,7 +77,7 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
 
     @Override
     @Transactional
-    public User verifyOneTimePassword(OneTimePasswordRequest oneTimePasswordRequest, String email,
+    public OneTimePassword verifyOneTimePassword(OneTimePasswordRequest oneTimePasswordRequest, String email,
             VerificationType verificationType) {
 
         User user = userService.findUserByEmail(email);
@@ -94,18 +94,18 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
             throw new AuthException("Invalid One Time Password.");
         }
 
-        if (verificationType == VerificationType.ACCOUNT_VERIFICATION) {
+        if (verificationType.equals(VerificationType.ACCOUNT_VERIFICATION)) {
             if (user.getIsVerified()) {
                 throw new AuthException("Account is already verified.");
             }
             user.setIsVerified(true);
-        } else if (verificationType == VerificationType.PASSWORD_RESET) {
+        } else if (verificationType.equals(VerificationType.PASSWORD_RESET)) {
             user.setCanChangePassword(true);
         }
 
         oneTimePasswordRepository.delete(oneTimePassword);
 
-        return userService.saveUser(user);
+        return oneTimePassword;
     }
 
     @Transactional

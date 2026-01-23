@@ -1,5 +1,8 @@
 package com.lerneon.backend.models.payload.request;
 
+import com.lerneon.backend.models.annotations.ValidEnum;
+import com.lerneon.backend.models.enums.VerificationType;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -19,6 +22,6 @@ public class EmailRequest {
     @Size(max = 100, message = "Email is too long. Please enter no more than 100 characters")
     private String email;
 
-    // Make Enum validation
+    @ValidEnum(enumClass = VerificationType.class, message = "Invalid verification type")
     private String verificationType;
 }

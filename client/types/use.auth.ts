@@ -9,7 +9,7 @@ import { VerificationType } from "./enums/verification.type";
 export type UseAuth = {
   session: AuthResponse | null;
   isAuthenticated: boolean;
-  hasPermission: (roles: string[]) => boolean;
+  hasRoles: (roles: string[]) => boolean;
   isLoading: boolean;
   isRefreshLoading: boolean;
   signIn: (data: LoginRequest) => void;

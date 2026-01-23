@@ -2,6 +2,7 @@ package com.lerneon.backend.models.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.lerneon.backend.models.enums.VerificationType;
@@ -30,6 +31,7 @@ import lombok.experimental.SuperBuilder;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class OneTimePassword extends BaseEntity {
     @Column(nullable = false, unique = true)
+    @JsonIgnore
     private String code;
 
     @Enumerated(EnumType.STRING)
@@ -40,7 +42,9 @@ public class OneTimePassword extends BaseEntity {
     private User user;
 
     @Column(nullable = false)
+    @JsonIgnore
     private LocalDateTime expireAt;
 
+    @JsonIgnore
     private LocalDateTime lastOtpRequest;
 }
