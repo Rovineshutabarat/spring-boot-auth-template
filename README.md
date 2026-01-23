@@ -36,33 +36,6 @@ This project provides a complete authentication and authorization solution, incl
 - React Hook Form + Zod
 - Shadcn UI
 
-## Project Structure
-
-**Backend**
-
-```
-backend/
-├── controllers
-├── services
-├── repositories
-├── models
-├── configurations
-├── filter
-└── utils
-```
-
-**Frontend**
-
-```
-client/
-├── app
-├── components
-├── services
-├── hooks
-├── types
-└── lib
-```
-
 ## Setup (Local)
 
 ### Prerequisites
