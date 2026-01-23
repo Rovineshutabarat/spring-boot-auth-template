@@ -7,46 +7,40 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/use-auth";
+import { VerificationType } from "@/types/enums/verification.type";
 import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 
-type TwoStepFormProps = {
-  mode: "verify-account" | "forgot-password";
-};
+const COOLDOWN_SECONDS = 120;
+const OTP_LAST_SENT_KEY = "otp_last_sent_at";
 
-const TwoStepForm = ({ mode }: TwoStepFormProps) => {
-  const { verifyAccount, sendOneTimePassword, verifyPasswordReset, isLoading } =
-    useAuth();
+function saveOtpTimestamp() {
+  localStorage.setItem(OTP_LAST_SENT_KEY, Date.now().toString());
+}
+
+function getRemainingCooldown(): number {
+  const lastSent = localStorage.getItem(OTP_LAST_SENT_KEY);
+  if (!lastSent) return 0;
+
+  const diff =
+    COOLDOWN_SECONDS - Math.floor((Date.now() - Number(lastSent)) / 1000);
+
+  return diff > 0 ? diff : 0;
+}
+
+const Page = () => {
+  const { verifyOneTimePassword, sendOneTimePassword, isLoading } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = React.useState<string | null>(null);
-  const [cooldown, setCooldown] = React.useState<number>(120);
+  const searchParams = useSearchParams();
 
-  React.useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (cooldown > 0) {
-      timer = setInterval(() => {
-        setCooldown((prev) => prev - 1);
-      }, 1000);
-    }
+  const email = searchParams.get("email") as string;
+  const type = searchParams.get("type") as VerificationType;
 
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [cooldown]);
-
-  React.useEffect(() => {
-    const email = sessionStorage.getItem("verification_email");
-    setEmail(email);
-    if (!email) {
-      router.back();
-    } else {
-      sendOneTimePassword({ email: email });
-    }
-  }, []);
+  const [cooldown, setCooldown] = React.useState<number>(0);
 
   const {
     control,
@@ -57,36 +51,65 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
     mode: "onSubmit",
   });
 
-  const title =
-    mode === "verify-account" ? "Verify Your Account" : "Reset Your Password";
+  React.useEffect(() => {
+    if (!email || !type) {
+      router.back();
+      return;
+    }
+    sessionStorage.clear();
+    const remaining = getRemainingCooldown();
 
-  const description =
-    mode === "verify-account"
-      ? "Please enter the 6-digit code sent to your email to verify your account."
-      : "Please enter the 6-digit code sent to your email to reset your password.";
+    if (remaining > 0) {
+      setCooldown(remaining);
+    } else {
+      sendOneTimePassword({ email, verificationType: type });
+      saveOtpTimestamp();
+      setCooldown(COOLDOWN_SECONDS);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   function handleResendOtp() {
-    if (!email) {
+    if (!email || !type) {
       router.back();
-    } else {
-      sendOneTimePassword({ email: email });
-      setCooldown(120);
+      return;
     }
+
+    sendOneTimePassword({ email, verificationType: type });
+    saveOtpTimestamp();
+    setCooldown(COOLDOWN_SECONDS);
   }
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
+  function formatTime(seconds: number) {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${sec.toString().padStart(2, "0")}`;
+  }
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center px-5 md:px-0">
       <div className="flex w-full items-center justify-center px-4 py-12 md:w-1/2 lg:px-8">
         <div className="mx-auto w-full max-w-sm space-y-12">
           <div className="space-y-4 text-center">
-            <h1 className="text-3xl font-bold">{title}</h1>
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <h1 className="text-3xl font-bold">
+              {type === VerificationType.Values.ACCOUNT_VERIFICATION
+                ? "Verify Your Account"
+                : "Reset Your Password"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {type === VerificationType.Values.ACCOUNT_VERIFICATION
+                ? "Please enter the 6-digit code sent to your email to verify your account."
+                : "Please enter the 6-digit code sent to your email to reset your password."}
+            </p>
           </div>
 
           <div className="flex items-center flex-col space-y-4">
@@ -101,9 +124,7 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
                     field.onChange(val);
                     if (val.length === 6) {
                       handleSubmit((data: OneTimePasswordRequest) => {
-                        mode === "verify-account"
-                          ? verifyAccount(data)
-                          : verifyPasswordReset(data);
+                        verifyOneTimePassword(data, email, type);
                       })();
                     }
                   }}
@@ -158,4 +179,4 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
   );
 };
 
-export default TwoStepForm;
+export default Page;

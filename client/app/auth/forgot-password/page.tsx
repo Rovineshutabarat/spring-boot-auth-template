@@ -1,17 +1,17 @@
 "use client";
 
-import React from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AuthService } from "@/services/auth.service";
+import { VerificationType } from "@/types/enums/verification.type";
 import { EmailRequest } from "@/types/payload/request/email.request";
-import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/services/auth.service";
+import React from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ErrorResponse } from "@/types/payload/response/common/error.response";
 
-const Page = () => {
+export default function page() {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
@@ -19,24 +19,30 @@ const Page = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<EmailRequest>({
     resolver: zodResolver(EmailRequest),
     mode: "onSubmit",
+    defaultValues: {
+      verificationType: VerificationType.Values.PASSWORD_RESET,
+    },
   });
 
-  const onSubmit: SubmitHandler<EmailRequest> = async (data: EmailRequest) => {
-    try {
-      setIsLoading(true);
-      await AuthService.findUserByEmail(data.email);
-      sessionStorage.clear();
-      sessionStorage.setItem("verification_email", data.email);
-      router.push("/auth/verify-password-reset");
-    } catch (error: any) {
-      const parsedBody = error.parsedBody as ErrorResponse;
-      toast.error(parsedBody.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit: SubmitHandler<EmailRequest> = async (data) => {
+    setIsLoading(true);
+    await AuthService.findUserByEmail(data.email)
+      .then(
+        (res) =>
+          res.code === 200 &&
+          router.replace(
+            `/auth/verify?email=${data.email}&type=${VerificationType.Values.PASSWORD_RESET}`,
+          ),
+      )
+      .catch(() =>
+        toast.error("Failed to send verification code. Please try again."),
+      )
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -68,11 +74,7 @@ const Page = () => {
                   )}
                 </div>
 
-                <Button
-                  className="w-full cursor-pointer"
-                  type="submit"
-                  disabled={isLoading}
-                >
+                <Button className="w-full cursor-pointer" type="submit">
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div
@@ -92,6 +94,4 @@ const Page = () => {
       </div>
     </div>
   );
-};
-
-export default Page;
+}

@@ -1,20 +1,19 @@
 "use client";
 
-import React from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { UpdatePasswordRequest } from "@/types/payload/request/update.password.request";
-import { Label } from "@/components/ui/label";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import React from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 const Page = () => {
-  const [isShowOldPassword, setIsShowOldPassword] =
-    React.useState<boolean>(false);
-  const [isShowNewPassword, setIsShowNewPassword] =
+  const [isShowPassword, setIsShowPassword] = React.useState<boolean>(false);
+  const [isShowConfirmPassword, setIsShowConfirmPassword] =
     React.useState<boolean>(false);
 
   const router = useRouter();
@@ -52,10 +51,9 @@ const Page = () => {
         <div className="flex w-full items-center justify-center px-4 py-12 md:w-1/2 lg:px-8">
           <div className="mx-auto w-full max-w-sm space-y-8">
             <div className="space-y-3 text-center">
-              <h1 className="text-3xl font-bold">Forgot your password?</h1>
+              <h1 className="text-3xl font-bold">Reset your password</h1>
               <p className="text-sm text-muted-foreground">
-                Enter your email address and we'll send you a verification code
-                to reset your password.
+                Please enter and confirm your new password below.
               </p>
             </div>
 
@@ -63,54 +61,56 @@ const Page = () => {
               <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Old Password</Label>
+                    <Label htmlFor="password">New Password</Label>
                   </div>
                   <div className="relative">
                     <Input
                       id="password"
-                      type={isShowOldPassword ? "text" : "password"}
-                      placeholder="Enter Your Old Password"
-                      {...register("oldPassword")}
+                      type={isShowPassword ? "text" : "password"}
+                      placeholder="Enter Your New Password"
+                      {...register("password")}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       className="absolute top-0 right-0"
-                      onClick={() => setIsShowOldPassword(!isShowOldPassword)}
+                      onClick={() => setIsShowPassword(!isShowPassword)}
                     >
-                      {isShowOldPassword ? <EyeOff /> : <Eye />}
+                      {isShowPassword ? <EyeOff /> : <Eye />}
                     </Button>
                   </div>
-                  {errors.oldPassword && (
+                  {errors.password && (
                     <p className="mt-1 text-destructive text-sm">
-                      *{errors.oldPassword.message}
+                      *{errors.password.message}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="confirm_password">New Password</Label>
+                    <Label htmlFor="confirm_password">Confirm Password</Label>
                   </div>
                   <div className="relative">
                     <Input
                       id="confirm_password"
-                      type={isShowNewPassword ? "text" : "password"}
-                      placeholder="Confirm Your Password"
-                      {...register("password")}
+                      type={isShowConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm Your New Password"
+                      {...register("confirmPassword")}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       className="absolute top-0 right-0 cursor-pointer"
-                      onClick={() => setIsShowNewPassword(!isShowNewPassword)}
+                      onClick={() =>
+                        setIsShowConfirmPassword(!isShowConfirmPassword)
+                      }
                     >
-                      {isShowNewPassword ? <EyeOff /> : <Eye />}
+                      {isShowConfirmPassword ? <EyeOff /> : <Eye />}
                     </Button>
                   </div>
-                  {errors.password && (
+                  {errors.confirmPassword && (
                     <p className="mt-1 text-destructive text-sm">
-                      *{errors.password.message}
+                      *{errors.confirmPassword.message}
                     </p>
                   )}
                 </div>

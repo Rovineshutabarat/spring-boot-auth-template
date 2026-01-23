@@ -1,3 +1,4 @@
+import { VerificationType } from "@/types/enums/verification.type";
 import { z } from "zod/v3";
 
 export const EmailRequest = z.object({
@@ -14,6 +15,7 @@ export const EmailRequest = z.object({
     .max(100, {
       message: "Email is too long. Please enter no more than 100 characters",
     }),
+  verificationType: VerificationType,
 });
 
 export type EmailRequest = z.infer<typeof EmailRequest>;

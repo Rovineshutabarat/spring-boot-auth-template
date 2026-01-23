@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { Eye, EyeOff } from "lucide-react";
-import { RegisterRequest } from "@/types/payload/request/register.request";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { RegisterRequest } from "@/types/payload/request/register.request";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 const RegisterPage = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
@@ -64,6 +63,7 @@ const RegisterPage = () => {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Enter Your Email"
                   {...register("email")}
                 />
@@ -81,6 +81,7 @@ const RegisterPage = () => {
                   <Input
                     id="password"
                     type={isShowPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     placeholder="Enter Your Password"
                     {...register("password")}
                   />
@@ -108,6 +109,7 @@ const RegisterPage = () => {
                   <Input
                     id="confirm_password"
                     type={isShowConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     placeholder="Confirm Your Password"
                     {...register("confirmPassword")}
                   />
@@ -163,13 +165,10 @@ const RegisterPage = () => {
       <div className="hidden bg-primary/10 lg:block md:w-1/2">
         <div className="flex h-full items-center justify-center">
           <div className="relative h-full w-full max-w-3xl">
-            <Image
-              src="https://edma-theme.vercel.app/images/signup-img.jpg"
+            <img
+              src="https://www.gbscorporate.com/uploads/pexels-olia-danilevich-4974914.jpg"
               alt="Login illustration"
-              width={600}
-              height={600}
               className="h-screen w-full object-cover"
-              priority
             />
           </div>
         </div>

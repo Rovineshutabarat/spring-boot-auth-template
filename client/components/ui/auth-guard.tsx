@@ -1,22 +1,33 @@
 "use client";
 
-import React, { Fragment } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import Unauthorized from "next/dist/client/components/builtin/unauthorized";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 
 type AuthGuardProps = {
   children: React.ReactNode;
-  roles: string[];
+  roles?: string[];
 };
 
 const AuthGuard = ({ children, roles }: AuthGuardProps) => {
-  const { hasPermission, isRefreshLoading } = useAuth();
+  const { isAuthenticated, hasRoles, isRefreshLoading } = useAuth();
+  const router = useRouter();
 
-  if (!isRefreshLoading && !hasPermission(roles)) return <Unauthorized />;
+  useEffect(() => {
+    if (!isRefreshLoading) {
+      if (!isAuthenticated) {
+        router.push("/auth/login");
+      } else if (roles && !hasRoles(roles)) {
+        router.push("/unauthorized");
+      }
+    }
+  }, [isRefreshLoading, isAuthenticated, roles, hasRoles, router]);
 
-  if (isRefreshLoading) return null;
+  if (isRefreshLoading || !isAuthenticated) return null;
 
-  return <Fragment>{children}</Fragment>;
+  if (roles && !hasRoles(roles)) return null;
+
+  return <>{children}</>;
 };
 
 export default AuthGuard;
