@@ -58,14 +58,14 @@ public class AppInitializer implements CommandLineRunner {
                 .canChangePassword(false)
                 .build());
 
-        userRepository.save(User.builder()
-                .email("anjaymabar7769@gmail.com")
-                .username("anjay1")
-                .password(passwordEncoder.encode("anjay1"))
-                .isVerified(false)
-                .roles(roles)
-                .provider(AccountProvider.LOCAL)
-                .canChangePassword(false)
-                .build());
+        // userRepository.save(User.builder()
+        // .email("anjaymabar7769@gmail.com")
+        // .username("anjay1")
+        // .password(passwordEncoder.encode("anjay1"))
+        // .isVerified(false)
+        // .roles(roles)
+        // .provider(AccountProvider.LOCAL)
+        // .canChangePassword(false)
+        // .build());
     }
 }
