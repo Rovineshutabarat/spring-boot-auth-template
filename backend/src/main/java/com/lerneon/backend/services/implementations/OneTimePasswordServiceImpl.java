@@ -99,6 +99,7 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
                 throw new AuthException("Account is already verified.");
             }
             user.setIsVerified(true);
+            user.setVerifiedAt(LocalDateTime.now());
         } else if (verificationType.equals(VerificationType.PASSWORD_RESET)) {
             user.setCanChangePassword(true);
         }

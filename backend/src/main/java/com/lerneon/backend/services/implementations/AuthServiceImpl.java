@@ -28,7 +28,9 @@ import com.lerneon.backend.services.JwtService;
 import com.lerneon.backend.services.RefreshTokenService;
 import com.lerneon.backend.services.UserService;
 import com.lerneon.backend.utils.CookieUtil;
+import com.lerneon.backend.utils.RequestUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +81,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User register(RegisterRequest registerRequest) {
+        HttpServletRequest request = RequestUtil.getCurrentRequest();
+
         if (userService.existByEmail(registerRequest.getEmail())) {
             throw new AuthException("Email already taken.");
         }
@@ -92,6 +96,8 @@ public class AuthServiceImpl implements AuthService {
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword())).isVerified(false)
                 .canChangePassword(false).provider(AccountProvider.LOCAL).roles(defaultRoles)
+                .ipAddress(request.getRemoteAddr())
+                .userAgent(request.getHeader("User-Agent"))
                 .build());
     }
 
