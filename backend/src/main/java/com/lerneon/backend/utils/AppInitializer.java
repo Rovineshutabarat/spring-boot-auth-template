@@ -54,8 +54,8 @@ public class AppInitializer implements CommandLineRunner {
                 .password(passwordEncoder.encode("rovines"))
                 .isVerified(true)
                 .roles(roles)
-                .provider(AccountProvider.LOCAL)
-                .canChangePassword(false)
+                .accountProvider(AccountProvider.LOCAL)
+                .canUpdatePassword(false)
                 .build());
 
         // userRepository.save(User.builder()

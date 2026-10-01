@@ -16,7 +16,7 @@ const RegisterPage = () => {
   const [isShowConfirmPassword, setIsShowConfirmPassword] =
     useState<boolean>(false);
 
-  const { signUp, isLoading } = useAuth();
+  const { signUp, isSigningUp } = useAuth();
 
   const {
     register,
@@ -133,15 +133,15 @@ const RegisterPage = () => {
               <Button
                 className="w-full cursor-pointer"
                 type="submit"
-                disabled={isLoading}
+                disabled={isSigningUp}
               >
-                {isLoading ? (
+                {isSigningUp ? (
                   <div className="flex items-center space-x-2">
                     <div
                       className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_0.4s_linear_infinite] dark:text-slate-700"
                       role="status"
                     ></div>
-                    <p>Please Wait..</p>
+                    <p>Please wait...</p>
                   </div>
                 ) : (
                   "Sign up"

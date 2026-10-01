@@ -6,81 +6,88 @@ import java.time.LocalDateTime;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
+import com.lerneon.backend.events.message.OneTimePasswordMailEvent;
+import com.lerneon.backend.events.producer.MailEventProducer;
 import com.lerneon.backend.models.entity.OneTimePassword;
 import com.lerneon.backend.models.entity.User;
 import com.lerneon.backend.models.enums.VerificationType;
 import com.lerneon.backend.models.exceptions.AuthException;
-import com.lerneon.backend.models.payload.request.EmailRequest;
-import com.lerneon.backend.models.payload.request.OneTimePasswordRequest;
+import com.lerneon.backend.models.payload.request.VerifyOTPRequest;
 import com.lerneon.backend.models.properties.OneTimePasswordProperties;
 import com.lerneon.backend.repositories.OneTimePasswordRepository;
-import com.lerneon.backend.services.MailService;
 import com.lerneon.backend.services.OneTimePasswordService;
 import com.lerneon.backend.services.UserService;
 
-import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class OneTimePasswordServiceImpl implements OneTimePasswordService {
     private final OneTimePasswordRepository oneTimePasswordRepository;
-    private final MailService mailService;
     private final OneTimePasswordProperties oneTimePasswordProperties;
-    private final TemplateEngine templateEngine;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final MailEventProducer mailEventProducer;
 
     @Override
-    public String loadOneTimePasswordTemplate(String code, String email) {
-        Context context = new Context();
-        context.setVariable("otp_code", code);
-        context.setVariable("user_email", email);
+    @Transactional
+    public void sendOneTimePasswordMail(String email, VerificationType verificationType) {
+        String code = generateOneTimePassword();
+        createOneTimePassword(email, code, verificationType);
 
-        return templateEngine.process("otp_template.html", context);
+        OneTimePasswordMailEvent oneTimePasswordMailEvent = OneTimePasswordMailEvent.builder()
+                .email(email)
+                .code(code)
+                .verificationType(verificationType)
+                .build();
+
+        switch (verificationType) {
+            case ACCOUNT_VERIFICATION -> mailEventProducer.produceVerifyAccountEvent(oneTimePasswordMailEvent);
+            case FORGOT_PASSWORD -> mailEventProducer.produceForgotPasswordEvent(oneTimePasswordMailEvent);
+            default -> throw new AuthException("Unsupported verification type: " + verificationType);
+        }
     }
 
-    @Transactional
-    @Override
-    public void sendOneTimePassword(EmailRequest emailRequest) throws MessagingException {
-        User user = userService.findUserByEmail(emailRequest.getEmail());
-        OneTimePassword oneTimePassword = oneTimePasswordRepository
-                .findByUserAndVerificationType(user, VerificationType.valueOf(emailRequest.getVerificationType()))
+    private OneTimePassword createOneTimePassword(String email, String code, VerificationType verificationType) {
+        User user = userService.findUserByEmail(email);
+
+        if (!user.isEnabled() && verificationType == VerificationType.FORGOT_PASSWORD) {
+            throw new AuthException("Please verify your account first.");
+        }
+
+        OneTimePassword existing = oneTimePasswordRepository
+                .findByUserAndVerificationType(user, verificationType)
                 .orElse(null);
 
-        if (oneTimePassword != null && oneTimePassword.getLastOtpRequest() != null
-                && oneTimePassword.getLastOtpRequest()
-                        .isAfter(LocalDateTime.now().minusMinutes(2))) {
+        if (existing != null && existing.getLastOtpRequest() != null
+                && existing.getLastOtpRequest().isAfter(LocalDateTime.now().minusMinutes(1))) {
             throw new AuthException("Please wait before requesting another OTP.");
         }
 
-        this.deletePreviousOtpByUserAndVerificationType(user,
-                VerificationType.valueOf(emailRequest.getVerificationType()));
+        deletePreviousOtpByUserAndVerificationType(user, verificationType);
 
-        SecureRandom secureRandom = new SecureRandom();
-        String code = String.format("%06d", secureRandom.nextInt(1_000_000));
-
-        oneTimePasswordRepository.save(OneTimePassword.builder()
+        return oneTimePasswordRepository.save(OneTimePassword.builder()
                 .code(passwordEncoder.encode(code))
                 .user(user)
-                .verificationType(VerificationType.valueOf(emailRequest.getVerificationType()))
+                .verificationType(verificationType)
                 .expireAt(LocalDateTime.now().plus(oneTimePasswordProperties.getExpiration()))
                 .lastOtpRequest(LocalDateTime.now())
                 .build());
+    }
 
-        mailService.sendMail(emailRequest.getEmail(), "Verify Your Identity",
-                loadOneTimePasswordTemplate(code, user.getEmail()));
+    private String generateOneTimePassword() {
+        SecureRandom secureRandom = new SecureRandom();
+        return String.format("%06d", secureRandom.nextInt(1_000_000));
     }
 
     @Override
     @Transactional
-    public OneTimePassword verifyOneTimePassword(OneTimePasswordRequest oneTimePasswordRequest, String email,
-            VerificationType verificationType) {
+    public OneTimePassword verifyOneTimePassword(VerifyOTPRequest verifyOTPRequest) {
 
-        User user = userService.findUserByEmail(email);
+        VerificationType verificationType = VerificationType.valueOf(verifyOTPRequest.getVerificationType());
+
+        User user = userService.findUserByEmail(verifyOTPRequest.getEmail());
 
         OneTimePassword oneTimePassword = oneTimePasswordRepository
                 .findByUserAndVerificationType(user, verificationType)
@@ -90,18 +97,18 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
             throw new AuthException("One Time Password has expired.");
         }
 
-        if (!passwordEncoder.matches(oneTimePasswordRequest.getCode(), oneTimePassword.getCode())) {
+        if (!passwordEncoder.matches(verifyOTPRequest.getCode(), oneTimePassword.getCode())) {
             throw new AuthException("Invalid One Time Password.");
         }
 
-        if (verificationType.equals(VerificationType.ACCOUNT_VERIFICATION)) {
+        if (verificationType == VerificationType.ACCOUNT_VERIFICATION) {
             if (user.getIsVerified()) {
                 throw new AuthException("Account is already verified.");
             }
             user.setIsVerified(true);
             user.setVerifiedAt(LocalDateTime.now());
-        } else if (verificationType.equals(VerificationType.PASSWORD_RESET)) {
-            user.setCanChangePassword(true);
+        } else if (verificationType == VerificationType.FORGOT_PASSWORD) {
+            user.setCanUpdatePassword(true);
         }
 
         oneTimePasswordRepository.delete(oneTimePassword);
@@ -109,9 +116,7 @@ public class OneTimePasswordServiceImpl implements OneTimePasswordService {
         return oneTimePassword;
     }
 
-    @Transactional
-    @Override
-    public void deletePreviousOtpByUserAndVerificationType(User user, VerificationType verificationType) {
+    private void deletePreviousOtpByUserAndVerificationType(User user, VerificationType verificationType) {
         oneTimePasswordRepository.deleteAllByUserAndVerificationType(user, verificationType);
     }
 }

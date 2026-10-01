@@ -1,4 +1,5 @@
 {
-  "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.format.settings.url": "/home/rovines/projects/code style/Default.xml",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "disabled",
 }

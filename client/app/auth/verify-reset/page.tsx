@@ -7,6 +7,9 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/use-auth";
+import { getPendingVerification } from "@/lib/pending-verification";
+import { formatCooldown, useOtpCooldown } from "@/lib/otp-cooldown";
+import { VerificationType } from "@/types/enums/verification.type";
 import { OneTimePasswordRequest } from "@/types/payload/request/otp.request";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
@@ -14,39 +17,14 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 
-type TwoStepFormProps = {
-  mode: "verify-account" | "forgot-password";
-};
-
-const TwoStepForm = ({ mode }: TwoStepFormProps) => {
-  const { verifyAccount, sendOneTimePassword, verifyPasswordReset, isLoading } =
+const Page = () => {
+  const { verifyOneTimePassword, sendOtp, isVerifyingOtp, isSendingOtp } =
     useAuth();
   const router = useRouter();
+
   const [email, setEmail] = React.useState<string | null>(null);
-  const [cooldown, setCooldown] = React.useState<number>(120);
-
-  React.useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (cooldown > 0) {
-      timer = setInterval(() => {
-        setCooldown((prev) => prev - 1);
-      }, 1000);
-    }
-
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [cooldown]);
-
-  React.useEffect(() => {
-    const email = sessionStorage.getItem("verification_email");
-    setEmail(email);
-    if (!email) {
-      router.back();
-    } else {
-      sendOneTimePassword({ email: email });
-    }
-  }, []);
+  const [ready, setReady] = React.useState(false);
+  const { cooldown, sync } = useOtpCooldown(VerificationType.Values.FORGOT_PASSWORD);
 
   const {
     control,
@@ -57,36 +35,57 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
     mode: "onSubmit",
   });
 
-  const title =
-    mode === "verify-account" ? "Verify Your Account" : "Reset Your Password";
-
-  const description =
-    mode === "verify-account"
-      ? "Please enter the 6-digit code sent to your email to verify your account."
-      : "Please enter the 6-digit code sent to your email to reset your password.";
-
-  function handleResendOtp() {
-    if (!email) {
-      router.back();
-    } else {
-      sendOneTimePassword({ email: email });
-      setCooldown(120);
+  React.useEffect(() => {
+    const stored = getPendingVerification();
+    if (!stored) {
+      router.replace("/auth/forgot-password");
+      return;
     }
+    setEmail(stored.email);
+    setReady(true);
+  }, [router]);
+
+  const wasSending = React.useRef(false);
+
+  React.useEffect(() => {
+    if (isSendingOtp) {
+      wasSending.current = true;
+      return;
+    }
+    if (wasSending.current) {
+      wasSending.current = false;
+      sync();
+    }
+  }, [isSendingOtp, sync]);
+
+  if (!ready || !email) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
+  function handleResendOtp() {
+    if (!email) return;
+    sendOtp({
+      email,
+      verificationType: VerificationType.Values.FORGOT_PASSWORD,
+    });
+  }
+
+  const busy = isVerifyingOtp || isSendingOtp;
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center px-5 md:px-0">
       <div className="flex w-full items-center justify-center px-4 py-12 md:w-1/2 lg:px-8">
         <div className="mx-auto w-full max-w-sm space-y-12">
           <div className="space-y-4 text-center">
-            <h1 className="text-3xl font-bold">{title}</h1>
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <h1 className="text-3xl font-bold">Reset Your Password</h1>
+            <p className="text-sm text-muted-foreground">
+              We sent a 6-digit reset code to {email}. Enter it below to
+              continue. The code expires in 5 minutes.
+            </p>
           </div>
 
           <div className="flex items-center flex-col space-y-4">
@@ -101,9 +100,11 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
                     field.onChange(val);
                     if (val.length === 6) {
                       handleSubmit((data: OneTimePasswordRequest) => {
-                        mode === "verify-account"
-                          ? verifyAccount(data)
-                          : verifyPasswordReset(data);
+                        verifyOneTimePassword(
+                          data,
+                          email,
+                          VerificationType.Values.FORGOT_PASSWORD,
+                        );
                       })();
                     }
                   }}
@@ -140,16 +141,16 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
           </div>
 
           <div className="flex justify-center items-center space-x-2 text-sm text-muted-foreground">
-            <p>Didn’t receive the code?</p>
+            <p>Didn&apos;t receive the code?</p>
             <button
               type="button"
               onClick={handleResendOtp}
-              disabled={isLoading || cooldown > 0}
+              disabled={busy || cooldown > 0}
               className="font-medium text-primary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {cooldown > 0
-                ? `Resend OTP in (${formatTime(cooldown)})`
-                : "Resend OTP"}
+                ? `Resend code in (${formatCooldown(cooldown)})`
+                : "Resend code"}
             </button>
           </div>
         </div>
@@ -158,4 +159,4 @@ const TwoStepForm = ({ mode }: TwoStepFormProps) => {
   );
 };
 
-export default TwoStepForm;
+export default Page;

@@ -16,6 +16,7 @@ import com.lerneon.backend.models.entity.RefreshToken;
 import com.lerneon.backend.models.entity.Role;
 import com.lerneon.backend.models.entity.User;
 import com.lerneon.backend.models.enums.AccountProvider;
+import com.lerneon.backend.models.enums.VerificationType;
 import com.lerneon.backend.models.exceptions.AuthException;
 import com.lerneon.backend.models.exceptions.ResourceNotFoundException;
 import com.lerneon.backend.models.payload.request.LoginRequest;
@@ -25,6 +26,7 @@ import com.lerneon.backend.models.properties.RefreshTokenProperties;
 import com.lerneon.backend.repositories.RoleRepository;
 import com.lerneon.backend.services.AuthService;
 import com.lerneon.backend.services.JwtService;
+import com.lerneon.backend.services.OneTimePasswordService;
 import com.lerneon.backend.services.RefreshTokenService;
 import com.lerneon.backend.services.UserService;
 import com.lerneon.backend.utils.CookieUtil;
@@ -46,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenProperties refreshTokenProperties;
+    private final OneTimePasswordService oneTimePasswordService;
 
     @Override
     public AuthResponse login(HttpServletResponse response, LoginRequest loginRequest) {
@@ -54,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
             User user = userService.findUserByEmail(loginRequest.getEmail());
 
-            if (user.getProvider().equals(AccountProvider.GOOGLE)) {
+            if (user.getAccountProvider().equals(AccountProvider.GOOGLE)) {
                 throw new AuthException(
                         "You’ve previously signed up using Google. Please continue with Google to log in.");
             }
@@ -70,7 +73,10 @@ public class AuthServiceImpl implements AuthService {
             CookieUtil.setCookie(response, refreshTokenProperties.getCookieName(),
                     refreshToken.getToken(), refreshTokenProperties.getExpiration().toMillis());
 
-            return AuthResponse.builder().accessToken(accessToken).user(user).build();
+            return AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .user(user)
+                    .build();
 
         } catch (BadCredentialsException exception) {
             throw new AuthException("Invalid email or password.");
@@ -91,14 +97,21 @@ public class AuthServiceImpl implements AuthService {
         defaultRoles.add(roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new ResourceNotFoundException("Default role was not found.")));
 
-        return userService.saveUser(User.builder()
+        User user = userService.createUser(User.builder()
                 .username(registerRequest.getUsername())
                 .email(registerRequest.getEmail())
-                .password(passwordEncoder.encode(registerRequest.getPassword())).isVerified(false)
-                .canChangePassword(false).provider(AccountProvider.LOCAL).roles(defaultRoles)
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .isVerified(false)
+                .canUpdatePassword(false)
+                .accountProvider(AccountProvider.LOCAL)
+                .roles(defaultRoles)
                 .ipAddress(request.getRemoteAddr())
                 .userAgent(request.getHeader("User-Agent"))
                 .build());
+
+        oneTimePasswordService.sendOneTimePasswordMail(user.getEmail(), VerificationType.ACCOUNT_VERIFICATION);
+
+        return user;
     }
 
     @Override
@@ -112,4 +125,5 @@ public class AuthServiceImpl implements AuthService {
         CookieUtil.removeCookie(response, refreshTokenProperties.getCookieName());
         SecurityContextHolder.clearContext();
     }
+
 }

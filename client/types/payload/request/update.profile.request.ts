@@ -20,7 +20,9 @@ export const UpdateProfileRequest = z.object({
     })
     .max(100, {
       message: "Email is too long. Please enter no more than 100 characters",
-    }),
+    })
+    .toLowerCase()
+    .trim(),
 });
 
 export type UpdateProfileRequest = z.infer<typeof UpdateProfileRequest>;

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/components/providers/auth-provider";
 
 type AppLayoutProps = {
@@ -14,8 +14,14 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
       refetchOnWindowFocus: false,
-      retry: 2,
+      retry: (failureCount, error: any) => {
+        if (error?.response?.status === 401) return false;
+        return failureCount < 1;
+      },
       retryDelay: 1000,
+    },
+    mutations: {
+      retry: 0,
     },
   },
 });

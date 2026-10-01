@@ -42,8 +42,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         private final RefreshTokenProperties refreshTokenProperties;
 
         @Override
-        public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                        Authentication authentication) throws IOException {
+        public void onAuthenticationSuccess(HttpServletRequest request,
+                        HttpServletResponse response, Authentication authentication)
+                        throws IOException {
                 CookieUtil.removeCookie(response, refreshTokenProperties.getCookieName());
 
                 OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
@@ -56,29 +57,28 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 String email = attributes.get("email").toString().toLowerCase();
                 Optional<User> existingUser = userService.findOptionalUserByEmail(email);
 
-                if (existingUser.isPresent() && !existingUser.get().getProvider().equals(AccountProvider.GOOGLE)) {
+                if (existingUser.isPresent() && !existingUser.get().getAccountProvider()
+                                .equals(AccountProvider.GOOGLE)) {
                         String errorMessage = "You’ve previously signed up using email and password. Please continue with that method to log in.";
-                        response.sendRedirect("http://localhost:3000/auth/login?error=" + URLEncoder
-                                        .encode(errorMessage, StandardCharsets.UTF_8)
-                                        .replace("+", "%20"));
+                        response.sendRedirect("http://localhost:3000/auth/login?error="
+                                        + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8)
+                                                        .replace("+", "%20"));
                         return;
                 }
 
-                User user = existingUser.orElseGet(() -> userService.saveUser(User.builder()
+                User user = existingUser.orElseGet(() -> userService.createUser(User.builder()
                                 .username(attributes.get("name").toString())
                                 .email(email)
                                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                                 .isVerified(true)
-                                .canChangePassword(false)
+                                .canUpdatePassword(false)
                                 .roles(roles)
-                                .provider(AccountProvider.GOOGLE)
+                                .accountProvider(AccountProvider.GOOGLE)
                                 .build()));
 
                 RefreshToken refreshToken = refreshTokenService.generateRefreshToken(user);
 
-                CookieUtil.setCookie(
-                                response,
-                                refreshTokenProperties.getCookieName(),
+                CookieUtil.setCookie(response, refreshTokenProperties.getCookieName(),
                                 refreshToken.getToken(),
                                 refreshTokenProperties.getExpiration().toMillis());
 
