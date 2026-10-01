@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -12,16 +11,16 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const LoginPage = () => {
+const LoginForm = () => {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const { signIn, isLoading } = useAuth();
+  const { signIn, isSigningIn } = useAuth();
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -45,7 +44,6 @@ const LoginPage = () => {
   });
 
   const onSubmit: SubmitHandler<LoginRequest> = (data: LoginRequest) => {
-    sessionStorage.setItem("verification_email", data.email);
     signIn(data);
   };
 
@@ -110,25 +108,18 @@ const LoginPage = () => {
                   </p>
                 )}
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm font-normal">
-                  Remember me
-                </Label>
-              </div>
-
               <Button
                 className="w-full cursor-pointer"
                 type="submit"
-                disabled={isLoading}
+                disabled={isSigningIn}
               >
-                {isLoading ? (
+                {isSigningIn ? (
                   <div className="flex items-center space-x-2">
                     <div
                       className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_0.4s_linear_infinite] dark:text-slate-700"
                       role="status"
                     ></div>
-                    <p>Please Wait..</p>
+                    <p>Please wait...</p>
                   </div>
                 ) : (
                   "Sign in"
@@ -147,7 +138,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <Link href="http://localhost:4000/api/oauth2/authorization/google">
+            <Link href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`} prefetch={false}>
               <Button
                 variant="ghost"
                 className="w-full mb-6 bg-primary/10 shadow-sm shadow-primary/50 dark:shadow-none cursor-pointer"
@@ -188,6 +179,14 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><p>Loading...</p></div>}>
+      <LoginForm />
+    </Suspense>
   );
 };
 

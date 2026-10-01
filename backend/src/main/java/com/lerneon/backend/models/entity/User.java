@@ -22,15 +22,17 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-@Data
+@Getter
+@Setter
 @SuperBuilder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -50,9 +52,9 @@ public class User extends BaseEntity implements UserDetails {
     private Boolean isVerified;
 
     @Column(nullable = false)
-    private Boolean canChangePassword;
+    private Boolean canUpdatePassword;
 
-    private AccountProvider provider;
+    private AccountProvider accountProvider;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false))

@@ -5,7 +5,7 @@ import { ApiClient } from "@/services/config/api.client";
 
 export class UserService {
   static async updateUser(
-    id: number | undefined,
+    id: number,
     data: UpdateProfileRequest,
   ): Promise<SuccessResponse<User>> {
     return await ApiClient.put(`user/${id}`, {

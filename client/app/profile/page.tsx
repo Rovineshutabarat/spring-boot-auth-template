@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import AuthGuard from "@/components/ui/auth-guard";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -16,23 +16,36 @@ import { toast } from "sonner";
 import React from "react";
 
 export default function ProfilePage() {
-  const { session } = useAuth();
+  const { session, isRefreshLoading } = useAuth();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(UpdateProfileRequest),
     mode: "onBlur",
   });
 
+  React.useEffect(() => {
+    if (session?.user) {
+      reset({
+        username: session.user.username,
+        email: session.user.email,
+      });
+    }
+  }, [session, reset]);
+
   const updateProfileMutation = useMutation({
     mutationKey: ["update_profile_mutation"],
-    mutationFn: (data: UpdateProfileRequest) =>
-      UserService.updateUser(session?.user.id, data),
-    onSuccess: () => toast.success("Success Updating Profile"),
-    onError: () => toast.error("Fail to update profile"),
+    mutationFn: (data: UpdateProfileRequest) => {
+      const id = session?.user.id;
+      if (!id) throw new Error("Session is not ready.");
+      return UserService.updateUser(id, data);
+    },
+    onSuccess: () => toast.success("Profile updated successfully."),
+    onError: () => toast.error("Failed to update profile."),
   });
 
   const onSubmit: SubmitHandler<UpdateProfileRequest> = (
@@ -47,7 +60,6 @@ export default function ProfilePage() {
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="flex flex-col items-center">
             <Avatar className="h-20 w-20 mb-2">
-              <AvatarImage src="" />
               <AvatarFallback className="uppercase text-4xl font-semibold">
                 {session?.user.username.at(0)}
               </AvatarFallback>
@@ -61,7 +73,7 @@ export default function ProfilePage() {
                 <Label htmlFor="name">Username</Label>
                 <Input
                   id="name"
-                  defaultValue={session?.user.username}
+                  placeholder="Enter Your Username"
                   {...register("username")}
                 />
                 {errors.username && (
@@ -76,7 +88,7 @@ export default function ProfilePage() {
                 <Input
                   id="email"
                   type="email"
-                  value={session?.user.email}
+                  placeholder="Enter Your Email"
                   {...register("email")}
                 />
                 {errors.email && (
@@ -86,8 +98,26 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <Button className="w-full" type="submit">
-                Save Changes
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={
+                  isRefreshLoading ||
+                  !session ||
+                  updateProfileMutation.isPending
+                }
+              >
+                {updateProfileMutation.isPending ? (
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_0.4s_linear_infinite] dark:text-slate-700"
+                      role="status"
+                    ></div>
+                    <p>Please wait...</p>
+                  </div>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </form>
           </CardContent>

@@ -3,7 +3,7 @@ import { setAccessToken } from "@/services/config/api.client";
 import { refreshAccessToken } from "@/services/config/refresh.client";
 import { Role } from "@/types/entity/role";
 import { AuthResponse } from "@/types/payload/response/auth.response";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 type AuthProviderContextState = {
@@ -26,6 +26,7 @@ export default function AuthProvider({
   const [session, setSessionState] = React.useState<AuthResponse | null>(null);
   const [isRefreshLoading, setIsRefreshLoading] = React.useState<boolean>(true);
   const pathname = usePathname();
+  const router = useRouter();
 
   const setSession = React.useCallback((response: AuthResponse | null) => {
     setSessionState(response);
@@ -66,6 +67,16 @@ export default function AuthProvider({
     () => Boolean(session?.accessToken && session?.user),
     [session],
   );
+
+  React.useEffect(() => {
+    if (
+      !isRefreshLoading &&
+      isAuthenticated &&
+      (pathname === "/auth/login" || pathname === "/auth/register")
+    ) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, isRefreshLoading, pathname, router]);
 
   return (
     <AuthProviderContext.Provider

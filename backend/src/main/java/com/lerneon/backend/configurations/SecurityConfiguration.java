@@ -29,25 +29,19 @@ public class SecurityConfiguration {
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                return http
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                return http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .csrf(AbstractHttpConfigurer::disable)
-                                .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers(
-                                                                "/auth/**",
-                                                                "/oauth2/**",
-                                                                // "/category/**",
-                                                                "/login/**",
-                                                                "/jwt/**")
-                                                .permitAll()
-                                                .anyRequest().authenticated())
-                                .oauth2Login(oauth2 -> oauth2
-                                                .successHandler(oAuth2SuccessHandler))
-                                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(authEntryPoint))
+                                .sessionManagement(session -> session.sessionCreationPolicy(
+                                                SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**", "/user/update-password")
+                                                .permitAll().anyRequest().authenticated())
+                                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler))
+                                // .addFilterBefore(rateLimitFilter,
+                                // UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
                                 .build();
         }
 }

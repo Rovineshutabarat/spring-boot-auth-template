@@ -22,7 +22,9 @@ export const RegisterRequest = z
       })
       .max(100, {
         message: "Email is too long. Please enter no more than 100 characters",
-      }),
+      })
+      .toLowerCase()
+      .trim(),
 
     password: z
       .string({ required_error: "Password cannot be blank" })

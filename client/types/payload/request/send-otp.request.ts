@@ -1,7 +1,7 @@
 import { VerificationType } from "@/types/enums/verification.type";
 import { z } from "zod/v3";
 
-export const EmailRequest = z.object({
+export const SendOtpRequest = z.object({
   email: z
     .string({
       required_error: "Email cannot be blank",
@@ -14,8 +14,10 @@ export const EmailRequest = z.object({
     })
     .max(100, {
       message: "Email is too long. Please enter no more than 100 characters",
-    }),
+    })
+    .toLowerCase()
+    .trim(),
   verificationType: VerificationType,
 });
 
-export type EmailRequest = z.infer<typeof EmailRequest>;
+export type SendOtpRequest = z.infer<typeof SendOtpRequest>;

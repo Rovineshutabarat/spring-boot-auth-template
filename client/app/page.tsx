@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,7 +89,6 @@ export default function AuthTemplateLanding() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Avatar>
-                        <AvatarImage src="" />
                         <AvatarFallback className="uppercase">
                           {session?.user?.username?.at(0)}
                         </AvatarFallback>

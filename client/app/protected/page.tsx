@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function page() {
   const { data } = useQuery({
-    queryKey: ["kontl"],
+    queryKey: ["categories"],
     queryFn: () => CategoryService.getAllCategories(),
   });
 

@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmailRequest {
+public class SendOTPRequest {
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Please provide a valid email address")
     @Size(min = 5, message = "Email is too short. Please enter at least 5 characters")

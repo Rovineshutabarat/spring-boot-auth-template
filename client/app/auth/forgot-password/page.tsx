@@ -2,47 +2,37 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AuthService } from "@/services/auth.service";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  formatCooldown,
+  useOtpCooldown,
+} from "@/lib/otp-cooldown";
 import { VerificationType } from "@/types/enums/verification.type";
-import { EmailRequest } from "@/types/payload/request/email.request";
+import { SendOtpRequest } from "@/types/payload/request/send-otp.request";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import React from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 export default function page() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const { sendOtp, isSendingOtp } = useAuth();
+  const { cooldown } = useOtpCooldown(VerificationType.Values.FORGOT_PASSWORD);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<EmailRequest>({
-    resolver: zodResolver(EmailRequest),
+  } = useForm<SendOtpRequest>({
+    resolver: zodResolver(SendOtpRequest),
     mode: "onSubmit",
     defaultValues: {
-      verificationType: VerificationType.Values.PASSWORD_RESET,
+      verificationType: VerificationType.Values.FORGOT_PASSWORD,
     },
   });
 
-  const onSubmit: SubmitHandler<EmailRequest> = async (data) => {
-    setIsLoading(true);
-    await AuthService.findUserByEmail(data.email)
-      .then(
-        (res) =>
-          res.code === 200 &&
-          router.replace(
-            `/auth/verify?email=${data.email}&type=${VerificationType.Values.PASSWORD_RESET}`,
-          ),
-      )
-      .catch(() =>
-        toast.error("Failed to send verification code. Please try again."),
-      )
-      .finally(() => {
-        setIsLoading(false);
-      });
+  const onSubmit: SubmitHandler<SendOtpRequest> = (data) => {
+    sendOtp({
+      email: data.email,
+      verificationType: VerificationType.Values.FORGOT_PASSWORD,
+    });
   };
 
   return (
@@ -53,7 +43,7 @@ export default function page() {
             <div className="space-y-3 text-center">
               <h1 className="text-3xl font-bold">Forgot your password?</h1>
               <p className="text-sm text-muted-foreground">
-                Enter your email address and we'll send you a verification code
+                Enter your email address and we&apos;ll send you a verification code
                 to reset your password.
               </p>
             </div>
@@ -74,15 +64,21 @@ export default function page() {
                   )}
                 </div>
 
-                <Button className="w-full cursor-pointer" type="submit">
-                  {isLoading ? (
+                <Button
+                  className="w-full cursor-pointer"
+                  type="submit"
+                  disabled={isSendingOtp || cooldown > 0}
+                >
+                  {isSendingOtp ? (
                     <div className="flex items-center space-x-2">
                       <div
                         className="inline-block h-4 w-4 animate-spin rounded-full border-3 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_0.4s_linear_infinite] dark:text-slate-700"
                         role="status"
                       ></div>
-                      <p>Please Wait..</p>
+                      <p>Please wait...</p>
                     </div>
+                  ) : cooldown > 0 ? (
+                    `Resend code in (${formatCooldown(cooldown)})`
                   ) : (
                     "Submit"
                   )}
